@@ -41,7 +41,7 @@ export function Chat() {
     <section className="space-y-6">
       <PageHeader
         title="Nutrition assistant"
-        description="Ask about today's meals, remaining calories, or weekly totals. Logging uses validated backend tools only."
+        description="Ask about today's meals, remaining calories, or weekly totals. This chat is text-only; upload food photos on AI Scan."
       />
       {messages.length === 0 && (
         <EmptyState title="Try a question">

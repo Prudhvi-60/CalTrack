@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 import logging
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -21,6 +22,15 @@ from app.core.middleware import RequestContextMiddleware, SecurityHeadersMiddlew
 from app.core.rate_limit import RateLimitMiddleware
 from app.schemas.common import ErrorBody, ErrorResponse
 
+
+def _database_label(raw_url: str) -> str:
+    host = (urlsplit(raw_url).hostname or "").lower()
+    if "supabase" in host:
+        return "supabase"
+    if host in {"localhost", "127.0.0.1", "::1"}:
+        return "local"
+    return "remote"
+
 settings = get_settings()
 logging.basicConfig(
     level=getattr(logging, settings.log_level.upper(), logging.INFO),
@@ -28,11 +38,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger("caltrack")
 validate_production_settings(settings)
+if not settings.uses_gemini:
+    logger.warning("AI_PROVIDER is ignored; CalTrack only calls Gemini")
 if settings.jwt_secret_key == "change-me-to-a-long-random-secret":
     logger.warning("JWT_SECRET_KEY is the development default. Set a unique secret before production.")
-logger.info("AI provider: Gemini")
+logger.info("AI provider: %s", settings.ai_provider_name)
 logger.info("AI model: %s", settings.ai_model or "missing")
 logger.info("AI API key: %s", "configured" if settings.ai_configured else "not configured")
+logger.info("Database URL: %s", "configured" if bool(settings.database_url.strip()) else "missing")
+logger.info("Database: %s", _database_label(settings.database_url))
 if not settings.ai_configured:
     logger.warning("GEMINI_API_KEY is missing. Food analysis and chat will return AI_NOT_CONFIGURED until it is set.")
 
@@ -64,12 +78,13 @@ app = FastAPI(
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(RequestContextMiddleware)
+# Added last so it runs first and answers OPTIONS preflight before other middleware.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
+    allow_headers=["Accept", "Authorization", "Content-Type", "X-Request-ID"],
     expose_headers=["X-Request-ID"],
 )
 
@@ -92,11 +107,17 @@ def _error_payload(code: str, message: str, details: list[str] | None = None) ->
 
 @app.exception_handler(AppError)
 async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
-    if not settings.is_production:
+    path = request.url.path
+    expected_refresh_miss = (
+        exc.status_code == 401
+        and request.method == "POST"
+        and path.rstrip("/").endswith("/auth/refresh")
+    )
+    if not settings.is_production and not expected_refresh_miss:
         logger.warning(
             "AppError %s %s code=%s status=%s rid=%s",
             request.method,
-            request.url.path,
+            path,
             exc.code,
             exc.status_code,
             getattr(request.state, "request_id", "-"),

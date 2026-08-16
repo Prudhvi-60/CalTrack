@@ -98,8 +98,8 @@ Service → **Variables**. Set:
 | --- | --- |
 | `ENVIRONMENT` | `production` |
 | `LOG_LEVEL` | `INFO` |
-| `DATABASE_URL` | usually **shared** from the Postgres plugin |
-| `JWT_SECRET_KEY` | long random string (not the example default) |
+| `DATABASE_URL` | **Supabase** Postgres URI (or `SUPABASE_DATABASE_URL`) |
+| `JWT_SECRET_KEY` | at least 32 random characters (not the example default) |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `15` |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | `14` |
 | `COOKIE_SECURE` | `true` |
@@ -107,19 +107,27 @@ Service → **Variables**. Set:
 | `FRONTEND_URL` | set after Vercel exists |
 | `CORS_ORIGINS` | same as `FRONTEND_URL` |
 | `GEMINI_API_KEY` | your Gemini API key |
-| `AI_MODEL` | `gemini-2.5-flash-lite` |
+| `AI_PROVIDER` | `Gemini` |
+| `AI_MODEL` | `gemini-3.1-flash-lite` |
 
 Optional pool settings if you need to override defaults: `DB_POOL_SIZE=5`, `DB_MAX_OVERFLOW=10`.
 
 ---
 
-## 5. PostgreSQL setup
+## 5. PostgreSQL setup (Supabase)
 
-1. In the same Railway project: **New** → **Database** → **PostgreSQL**.
-2. Open the Postgres service → **Variables**. Copy `DATABASE_URL`, or **Variable reference** it into the API service as `DATABASE_URL`.
-3. The API rewrites `postgres://` to `postgresql+psycopg://`. Public proxy hosts get `sslmode=require`. Private `*.railway.internal` hosts do not.
+CalTrack uses **Supabase Postgres** as the cloud database. The React app never connects to Supabase. Only FastAPI uses the connection URI.
 
-Do not enable a browser/Supabase client. SQLAlchemy on Railway is the only database access path.
+1. Create a project at [supabase.com](https://supabase.com).
+2. Open **Project Settings → Database**.
+3. Copy the **URI** connection string. For the Railway FastAPI process, prefer **Session pooler (port 5432)**.
+4. Paste it into the Railway API service as `DATABASE_URL` (or `SUPABASE_DATABASE_URL`).
+5. The API rewrites `postgres://` to `postgresql+psycopg://` and adds `sslmode=require` for Supabase hosts.
+6. Transaction pooler (**port 6543**) is supported but uses a NullPool (PgBouncer transaction mode). Prefer 5432 for this app.
+
+Do not put the Supabase URI, `anon` key, or `service_role` key in Vercel or any `VITE_*` variable. Do not use the Supabase JS client in the frontend.
+
+Then run migrations against that database (`alembic upgrade head` on Railway pre-deploy).
 
 ---
 
@@ -234,7 +242,7 @@ If refresh fails in Chrome, the access token still works until expiry. A custom 
 | CORS error | Exact Vercel origin in `FRONTEND_URL` / `CORS_ORIGINS`, no trailing slash |
 | Network error on Vercel | `VITE_API_URL` set, then **Redeploy** |
 | 503 `AI_NOT_CONFIGURED` | `GEMINI_API_KEY` on Railway |
-| `/health/ready` fails | Postgres plugin linked; `DATABASE_URL` present |
+| `/health/ready` fails | Supabase `DATABASE_URL` set; SSL/pooler URI; `alembic upgrade head` |
 | 401 after a few minutes | `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true` |
 | Migration error | Railway shell `alembic upgrade head` |
 | App 404 on `/login` | Confirm `frontend/vercel.json` is in the Vercel root |
@@ -252,7 +260,7 @@ Start command:      uvicorn app.main:app --host 0.0.0.0 --port $PORT
 Pre-deploy:         alembic upgrade head
 Healthcheck:        /health
 
-DATABASE_URL=            (from Postgres plugin)
+DATABASE_URL=            (Supabase URI, Session pooler :5432)
 JWT_SECRET_KEY=
 ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=14
@@ -263,7 +271,8 @@ LOG_LEVEL=INFO
 FRONTEND_URL=https://<vercel-domain>
 CORS_ORIGINS=https://<vercel-domain>
 GEMINI_API_KEY=
-AI_MODEL=gemini-2.5-flash-lite
+AI_PROVIDER=Gemini
+AI_MODEL=gemini-3.1-flash-lite
 ```
 
 ### Vercel

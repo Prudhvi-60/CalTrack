@@ -110,6 +110,46 @@ def test_pdf_requires_auth(client: TestClient) -> None:
     assert response.status_code == 401
 
 
+def test_pdf_user_isolation(client: TestClient, monkeypatch) -> None:
+    table = [line.split(",") for line in CSV.strip().splitlines()]
+    monkeypatch.setattr("app.services.pdf.pdf_import_service.parse_pdf", lambda _data: table)
+    first = _register(client)
+    second = _register(client)
+    headers_a = {"Authorization": f"Bearer {first}"}
+    headers_b = {"Authorization": f"Bearer {second}"}
+    preview = client.post(
+        "/api/v1/import/pdf",
+        headers=headers_a,
+        files={"file": ("diary.pdf", BytesIO(_pdf_from_text(CSV)), "application/pdf")},
+    )
+    assert preview.status_code == 200
+    valid_rows = [
+        {
+            "date": row["date"],
+            "meal_type": row["meal_type"],
+            "food_name": row["food_name"],
+            "quantity": row["quantity"],
+            "unit": row["unit"],
+            "calories": row["calories"],
+            "protein": row["protein"],
+            "carbohydrates": row["carbohydrates"],
+            "fat": row["fat"],
+            "fiber": row["fiber"],
+            "sugar": row["sugar"],
+        }
+        for row in preview.json()["rows"]
+        if row["valid"]
+    ]
+    confirm = client.post("/api/v1/import/pdf/confirm", headers=headers_a, json={"rows": valid_rows})
+    assert confirm.status_code == 200
+    meals_a = client.get("/api/v1/meals", headers=headers_a).json()
+    meals_b = client.get("/api/v1/meals", headers=headers_b).json()
+    assert meals_a["total"] >= 1
+    assert meals_b["total"] == 0
+    meal_id = meals_a["items"][0]["id"]
+    assert client.get(f"/api/v1/meals/{meal_id}", headers=headers_b).status_code == 404
+
+
 def test_pdf_rejects_non_pdf(client: TestClient) -> None:
     token = _register(client)
     response = client.post(

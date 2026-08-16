@@ -35,7 +35,17 @@ def test_database_connectivity() -> None:
 def test_expected_tables_exist() -> None:
     inspector = inspect(engine)
     names = set(inspector.get_table_names())
-    assert {"users", "goals", "meals", "food_entries", "micronutrients"}.issubset(names)
+    assert {
+        "users",
+        "goals",
+        "meals",
+        "food_entries",
+        "micronutrients",
+        "ai_corrections",
+        "refresh_tokens",
+        "ai_analyses",
+        "ai_analysis_feedback",
+    }.issubset(names)
 
 
 def test_session_opens() -> None:

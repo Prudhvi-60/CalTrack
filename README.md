@@ -17,7 +17,7 @@ The browser talks **only** to the FastAPI REST API. It never opens PostgreSQL or
 **Local**
 
 ```
-Vite :5173  --proxy /api-->  FastAPI :8000  →  local PostgreSQL
+Vite :5173  --proxy /api-->  FastAPI :8001  →  PostgreSQL (local or Supabase)
 ```
 
 **Production**
@@ -26,7 +26,7 @@ Vite :5173  --proxy /api-->  FastAPI :8000  →  local PostgreSQL
 Internet → Vercel (React + Vite)
               HTTPS
          Railway (FastAPI)
-              ├─ PostgreSQL (Railway plugin)
+              ├─ PostgreSQL (Supabase)
               └─ AI provider
 ```
 
@@ -51,7 +51,7 @@ python -m venv .venv
 pip install -r requirements.txt
 alembic upgrade head
 python -m scripts.seed
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 ```
 
 ```bash
@@ -61,8 +61,8 @@ npm run dev
 ```
 
 App: http://localhost:5173  
-API docs: http://127.0.0.1:8000/docs  
-Health: http://127.0.0.1:8000/health
+API docs: http://127.0.0.1:8001/docs  
+Health: http://127.0.0.1:8001/health
 
 Optional full Docker stack: `docker compose up --build`.
 
@@ -72,8 +72,8 @@ Optional full Docker stack: `docker compose up --build`.
 | --- | --- | --- |
 | Frontend | Vercel | React + Vite static `dist/` |
 | Backend | Railway | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
-| Database | Railway PostgreSQL | Plugin `DATABASE_URL` |
-| AI | xAI (Grok) | Called only from Railway |
+| Database | Supabase PostgreSQL | `DATABASE_URL` / `SUPABASE_DATABASE_URL` |
+| AI | Gemini | Called only from Railway |
 
 Do not put `DATABASE_URL`, `JWT_SECRET_KEY`, or `GEMINI_API_KEY` in Vercel or in frontend source.
 
@@ -92,7 +92,7 @@ Step-by-step launch: [docs/DEPLOYMENT_VERCEL_RAILWAY.md](docs/DEPLOYMENT_VERCEL_
 2. **Root Directory:** `backend`
 3. Railway reads `backend/railway.toml`.
 4. **Start:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-5. Add a **PostgreSQL** plugin; Railway injects `DATABASE_URL`.
+5. Set `DATABASE_URL` to your **Supabase** connection URI (Session pooler, port 5432), or `SUPABASE_DATABASE_URL`.
 6. Set the other variables below.
 7. `preDeployCommand` runs `alembic upgrade head`.
 8. Generate a public domain. Open `https://<service>.up.railway.app/health`.
@@ -123,7 +123,7 @@ Legacy name `VITE_API_BASE_URL` is still read if `VITE_API_URL` is unset.
 | --- | --- |
 | `ENVIRONMENT` | `production` |
 | `LOG_LEVEL` | `INFO` |
-| `DATABASE_URL` | Usually injected by the Postgres plugin |
+| `DATABASE_URL` | Supabase Postgres URI (Session pooler `:5432`). Alias: `SUPABASE_DATABASE_URL` |
 | `JWT_SECRET_KEY` | Long random secret (required; app refuses the default in production) |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `15` |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | `14` |
@@ -169,7 +169,7 @@ The scanner and chat call the provider from Railway. Missing keys return `AI_NOT
 - **Login works, then 401 after 15 minutes:** refresh cookie blocked as third-party. Confirm `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true`, CORS credentials, and `withCredentials`. A custom domain for both apps is the durable fix.
 - **CORS error:** Vercel origin missing from `FRONTEND_URL` / `CORS_ORIGINS` (no trailing slash).
 - **Blank API calls on Vercel:** `VITE_API_URL` empty at build time; set it and redeploy.
-- **Database SSL / driver errors:** Railway public URLs get `sslmode=require`. Private `*.railway.internal` URLs do not.
+- **Database SSL / driver errors:** Supabase URIs get `sslmode=require`. Use Session pooler `:5432` for FastAPI. Port `:6543` is transaction mode.
 - **Migration failed:** Railway shell → `alembic current` then `alembic upgrade head`.
 
 ## Security Notes

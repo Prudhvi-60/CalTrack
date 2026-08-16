@@ -7,6 +7,9 @@ function resolveApiUrl(): string {
 }
 
 const baseURL = resolveApiUrl();
+if (import.meta.env.PROD && !baseURL) {
+  console.error("VITE_API_URL is not set. The production frontend cannot reach FastAPI.");
+}
 const timeout = Number(import.meta.env.VITE_API_TIMEOUT_MS ?? 30000);
 
 type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean };

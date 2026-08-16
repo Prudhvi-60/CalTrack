@@ -24,6 +24,16 @@ def test_health_ai_does_not_include_a_secret() -> None:
     assert "sk-" not in joined
 
 
+def test_health_ready_checks_database() -> None:
+    response = client.get("/api/v1/health/ready")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["database"] == "connected"
+    assert "password" not in str(body).lower()
+    assert "postgresql" not in str(body).lower()
+
+
 def test_health_root() -> None:
     response = client.get("/health")
     assert response.status_code == 200

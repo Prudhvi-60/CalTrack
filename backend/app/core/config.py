@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", validation_alias=AliasChoices("LOG_LEVEL", "log_level"))
     database_url: str = Field(
         default=_DEV_DATABASE_URL,
-        validation_alias=AliasChoices("DATABASE_URL", "database_url"),
+        validation_alias=AliasChoices("DATABASE_URL", "SUPABASE_DATABASE_URL", "POSTGRES_URL", "database_url"),
     )
     db_pool_size: int = 5
     db_max_overflow: int = 10
@@ -54,6 +54,7 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("GEMINI_API_KEY", "AI_API_KEY", "GOOGLE_API_KEY", "ai_api_key"),
     )
+    ai_provider: str = Field(default="Gemini", validation_alias=AliasChoices("AI_PROVIDER", "ai_provider"))
     ai_model: str = Field(default="gemini-3.1-flash-lite", validation_alias=AliasChoices("AI_MODEL", "ai_model"))
     ai_base_url: str = Field(default="", validation_alias=AliasChoices("AI_BASE_URL", "ai_base_url"))
     ai_timeout_seconds: float = 45
@@ -87,6 +88,11 @@ class Settings(BaseSettings):
         return "Gemini"
 
     @property
+    def uses_gemini(self) -> bool:
+        name = str(getattr(self, "ai_provider", "Gemini") or "Gemini").strip().lower()
+        return name in {"", "gemini", "google", "google-gemini", "google_genai"}
+
+    @property
     def cors_origin_list(self) -> list[str]:
         origins: list[str] = []
         for origin in self.cors_origins.split(","):
@@ -103,6 +109,10 @@ class Settings(BaseSettings):
                 frontend = ""
             elif frontend not in origins:
                 origins.insert(0, frontend)
+        if not self.is_production:
+            for local in ("http://localhost:5173", "http://127.0.0.1:5173"):
+                if local not in origins:
+                    origins.append(local)
         return origins
 
     @property
@@ -135,10 +145,18 @@ class Settings(BaseSettings):
 def validate_production_settings(settings: Settings) -> None:
     if not settings.is_production:
         return
-    if settings.jwt_secret_key == _DEV_JWT_SECRET:
+    secret = settings.jwt_secret_key.strip()
+    if not secret or secret == _DEV_JWT_SECRET:
         raise RuntimeError("JWT_SECRET_KEY must be a unique secret in production")
-    if settings.database_url.strip() == _DEV_DATABASE_URL:
+    if len(secret) < 32:
+        raise RuntimeError("JWT_SECRET_KEY must be at least 32 characters in production")
+    database_url = settings.database_url.strip()
+    if not database_url or database_url == _DEV_DATABASE_URL:
         raise RuntimeError("DATABASE_URL must be set in production")
+    if "sqlite" in database_url.lower():
+        raise RuntimeError("SQLite is not allowed in production; set DATABASE_URL to Supabase PostgreSQL")
+    if not settings.uses_gemini:
+        raise RuntimeError("AI_PROVIDER must be Gemini")
     if not settings.cors_origin_list:
         raise RuntimeError("FRONTEND_URL must be set to the deployed frontend origin in production")
 

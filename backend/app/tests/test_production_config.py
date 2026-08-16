@@ -21,12 +21,39 @@ def test_railway_public_url_requires_ssl() -> None:
     assert "sslmode=require" in url
 
 
-def test_supabase_pooler_uses_null_pool() -> None:
+def test_supabase_transaction_pooler_uses_null_pool() -> None:
     url = sqlalchemy_database_url("postgresql://user:pass@aws-0-us-east-1.pooler.supabase.com:6543/postgres")
+    assert "sslmode=require" in url
     assert uses_transaction_pooler(url)
     kwargs = engine_kwargs(url, pool_size=5, max_overflow=10, pool_timeout=30, pool_recycle=1800)
     assert kwargs["poolclass"].__name__ == "NullPool"
     assert kwargs["connect_args"]["prepare_threshold"] is None
+
+
+def test_supabase_session_pooler_keeps_sqlalchemy_pool() -> None:
+    url = sqlalchemy_database_url("postgresql://user:pass@aws-0-us-east-1.pooler.supabase.com:5432/postgres")
+    assert "sslmode=require" in url
+    assert uses_transaction_pooler(url) is False
+    kwargs = engine_kwargs(url, pool_size=5, max_overflow=10, pool_timeout=30, pool_recycle=1800)
+    assert "poolclass" not in kwargs
+    assert kwargs["pool_size"] == 5
+
+
+def test_supabase_direct_host_requires_ssl() -> None:
+    url = sqlalchemy_database_url("postgresql://postgres:pass@db.abcdefgh.supabase.co:5432/postgres")
+    assert url.startswith("postgresql+psycopg://")
+    assert "sslmode=require" in url
+
+
+def test_supabase_database_url_alias(monkeypatch) -> None:
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("POSTGRES_URL", raising=False)
+    monkeypatch.setenv(
+        "SUPABASE_DATABASE_URL",
+        "postgresql://postgres:pass@aws-0-us-east-1.pooler.supabase.com:5432/postgres",
+    )
+    settings = Settings(_env_file=None)
+    assert "pooler.supabase.com" in settings.database_url
 
 
 def test_production_cookies_are_secure_cross_site() -> None:
@@ -57,6 +84,17 @@ def test_gemini_api_key_env_alias(monkeypatch) -> None:
     assert settings.ai_api_key == "gemini-test-key"
 
 
+def test_development_always_includes_local_vite_origins() -> None:
+    settings = Settings(
+        frontend_url="http://localhost:5173",
+        cors_origins="http://127.0.0.1:8001",
+        _env_file=None,
+    )
+    assert "http://localhost:5173" in settings.cors_origin_list
+    assert "http://127.0.0.1:5173" in settings.cors_origin_list
+    assert "http://127.0.0.1:8001" in settings.cors_origin_list
+
+
 def test_cors_includes_frontend_url_and_rejects_wildcard() -> None:
     settings = Settings(
         frontend_url="https://app.example.com",
@@ -72,7 +110,7 @@ def test_production_cors_uses_frontend_url_not_localhost_defaults() -> None:
         environment="production",
         frontend_url="https://app.example.com",
         cors_origins="http://localhost:5173,http://127.0.0.1:5173",
-        jwt_secret_key="production-secret-not-for-git",
+        jwt_secret_key="a-secure-production-jwt-secret-key!!",
         database_url="postgresql+psycopg://user:pass@db.example.com:5432/caltrack",
         _env_file=None,
     )
@@ -94,7 +132,7 @@ def test_production_settings_require_secrets() -> None:
         validate_production_settings(
             Settings.model_construct(
                 environment="production",
-                jwt_secret_key="production-secret-not-for-git",
+                jwt_secret_key="a-secure-production-jwt-secret-key!!",
                 database_url="postgresql+psycopg://caltrack:caltrack@localhost:5432/caltrack",
                 frontend_url="https://app.example.com",
                 cors_origins="https://app.example.com",
@@ -104,12 +142,53 @@ def test_production_settings_require_secrets() -> None:
         validate_production_settings(
             Settings.model_construct(
                 environment="production",
-                jwt_secret_key="production-secret-not-for-git",
+                jwt_secret_key="a-secure-production-jwt-secret-key!!",
                 database_url="postgresql+psycopg://user:pass@db.example.com:5432/caltrack",
                 frontend_url="http://localhost:5173",
                 cors_origins="http://localhost:5173,http://127.0.0.1:5173",
             )
         )
+
+
+def test_production_rejects_short_jwt_and_sqlite() -> None:
+    with pytest.raises(RuntimeError, match="32 characters"):
+        validate_production_settings(
+            Settings.model_construct(
+                environment="production",
+                jwt_secret_key="too-short-to-be-production",
+                database_url="postgresql+psycopg://user:pass@db.example.com:5432/caltrack",
+                frontend_url="https://app.example.com",
+                cors_origins="https://app.example.com",
+                ai_provider="Gemini",
+            )
+        )
+    with pytest.raises(RuntimeError, match="SQLite"):
+        validate_production_settings(
+            Settings.model_construct(
+                environment="production",
+                jwt_secret_key="a-secure-production-jwt-secret-key!!",
+                database_url="sqlite:///./caltrack.db",
+                frontend_url="https://app.example.com",
+                cors_origins="https://app.example.com",
+                ai_provider="Gemini",
+            )
+        )
+    with pytest.raises(RuntimeError, match="Gemini"):
+        validate_production_settings(
+            Settings.model_construct(
+                environment="production",
+                jwt_secret_key="a-secure-production-jwt-secret-key!!",
+                database_url="postgresql+psycopg://user:pass@db.example.com:5432/caltrack",
+                frontend_url="https://app.example.com",
+                cors_origins="https://app.example.com",
+                ai_provider="grok",
+            )
+        )
+
+
+def test_sqlite_urls_are_rejected() -> None:
+    with pytest.raises(ValueError, match="SQLite"):
+        sqlalchemy_database_url("sqlite:///./caltrack.db")
 
 
 def test_settings_load_without_env_file() -> None:

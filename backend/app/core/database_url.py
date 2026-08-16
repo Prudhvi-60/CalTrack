@@ -10,6 +10,8 @@ def sqlalchemy_database_url(raw: str) -> str:
     url = (raw or "").strip()
     if not url:
         raise ValueError("DATABASE_URL is empty")
+    if url.lower().startswith("sqlite"):
+        raise ValueError("SQLite is not supported; set DATABASE_URL to PostgreSQL")
     if url.startswith("postgres://"):
         url = "postgresql://" + url[len("postgres://") :]
     if url.startswith("postgresql://") and not url.startswith("postgresql+"):
@@ -30,8 +32,8 @@ def _ensure_sslmode(url: str) -> str:
 
 
 def uses_transaction_pooler(url: str) -> bool:
-    lowered = url.lower()
-    return ":6543" in lowered or "pooler.supabase.com" in lowered
+    """Supabase transaction-mode pooler (port 6543) does not support prepared statements."""
+    return urlsplit(url).port == 6543
 
 
 def engine_kwargs(url: str, *, pool_size: int, max_overflow: int, pool_timeout: int, pool_recycle: int) -> dict:

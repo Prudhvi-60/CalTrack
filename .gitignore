@@ -25,6 +25,7 @@ htmlcov/
 node_modules/
 frontend/dist/
 frontend/.vite/
+build/
 
 # IDEs
 .idea/
