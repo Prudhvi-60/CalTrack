@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ErrorAlert } from "@/components/ui/error-alert";
 import { EmptyState } from "@/components/ui/empty-state";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { SLOT_ACCENT } from "@/utils/accents";
 
 const STAGES = [
   "Processing document...",
@@ -89,6 +90,7 @@ export function PdfImport() {
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState(STAGES[0]);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
 
   const totals = useMemo(() => {
     if (!days) {
@@ -106,9 +108,11 @@ export function PdfImport() {
     setDays(null);
     setSummary(null);
     setReviewOpen(false);
+    setFileName(null);
     if (!file) {
       return;
     }
+    setFileName(file.name);
     if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       setError("Upload a PDF file.");
       return;
@@ -223,20 +227,25 @@ export function PdfImport() {
         title="Import food diary"
         description="Upload a meal plan, food diary or nutrition PDF. Review extracted meals before anything is saved."
       />
-      <div className="space-y-3 rounded-lg border bg-card p-4">
-        <label htmlFor="diary-pdf" className="text-sm font-medium">
+      <div className="upload-zone space-y-2">
+        <label htmlFor="diary-pdf" className="text-sm font-medium text-forest">
           Upload your meal plan or food diary PDF
         </label>
+        <p className="text-xs text-muted-foreground">Import your food diary. PDF meal plans, diaries, scanned pages, and tables. Typical size under 10 MB.</p>
         <input
           id="diary-pdf"
           type="file"
           accept="application/pdf"
+          className="mx-auto mt-2 block w-full max-w-full text-sm"
           onChange={(event) => void onFile(event.target.files?.[0] ?? null)}
         />
-        <p className="text-xs text-muted-foreground">
-          Supported: PDF meal plans, food diaries, scanned PDFs, tables, weekly/monthly plans.
-        </p>
       </div>
+      {fileName && (
+        <p className="text-sm text-muted-foreground">
+          File: <span className="font-medium text-foreground">{fileName}</span>
+          {busy ? " · Processing…" : summary ? " · Ready to review" : ""}
+        </p>
+      )}
       {busy && <p className="text-sm text-muted-foreground">{stage}</p>}
       {error && <ErrorAlert message={error} />}
       {result && (
@@ -256,7 +265,7 @@ export function PdfImport() {
         </p>
       )}
       {summary && days && (
-        <div className="space-y-3 rounded-lg border bg-card p-4">
+        <div className="surface-card space-y-3 p-4">
           <p className="text-sm font-medium">Extraction complete</p>
           {summary.title && <p className="text-sm text-muted-foreground">{summary.title}</p>}
           <ul className="text-sm text-muted-foreground">
@@ -275,7 +284,7 @@ export function PdfImport() {
             <EmptyState title="No meals found">Try another PDF.</EmptyState>
           ) : (
             days.map((day) => (
-              <article key={day.key} className="space-y-4 rounded-lg border bg-card p-4">
+              <article key={day.key} className="surface-card space-y-4 p-4">
                 <div className="flex flex-wrap items-end gap-3">
                   <label className="text-sm">
                     <span className="mb-1 block text-muted-foreground">Day</span>
@@ -310,7 +319,10 @@ export function PdfImport() {
                   return (
                     <div key={slot.id} className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <h2 className="text-sm font-semibold uppercase tracking-wide">{slot.label}</h2>
+                        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
+                          <span className={`h-2.5 w-2.5 rounded-full ${SLOT_ACCENT[slot.id]}`} aria-hidden />
+                          {slot.label}
+                        </h2>
                         <Button type="button" variant="outline" size="sm" onClick={() => addFood(day.key, slot.id)}>
                           Add food
                         </Button>
@@ -346,7 +358,7 @@ export function PdfImport() {
                             placeholder="Unit"
                           />
                           <select
-                            className="h-10 rounded-md border border-input bg-background px-2 text-sm"
+                            className="h-10 rounded-[11px] border border-input bg-card px-2 text-sm"
                             value={food.slot}
                             onChange={(event) => updateFood(day.key, food.id, { slot: event.target.value as MealSlot })}
                             aria-label="Meal category"

@@ -22,7 +22,7 @@ export function Field({
 
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="text-sm font-medium">
+      <label htmlFor={id} className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </label>
       {control}

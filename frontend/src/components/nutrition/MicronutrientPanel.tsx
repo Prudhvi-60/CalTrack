@@ -21,7 +21,7 @@ export function MicronutrientPanel({ items }: { items: MicronutrientTotal[] }) {
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {featured.map((item) => (
-          <div key={item.nutrient_name} className="rounded-lg border bg-background p-3">
+          <div key={item.nutrient_name} className="rounded-[14px] border border-border bg-secondary/70 p-3">
             <p className="text-sm text-muted-foreground">{item.nutrient_name}</p>
             <p className="mt-1 font-medium">
               {formatGrams(item.amount)} {item.unit}

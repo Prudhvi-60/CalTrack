@@ -65,7 +65,7 @@ export function MealDetails() {
           </div>
         }
       />
-      {meal.notes && <p className="rounded-lg border bg-card p-4 text-sm">{meal.notes}</p>}
+      {meal.notes && <p className="surface-card p-4 text-sm">{meal.notes}</p>}
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Calories" value={`${formatGrams(meal.totals.calories)} kcal`} />
         <Stat label="Protein" value={`${formatGrams(meal.totals.protein)} g`} />
@@ -76,7 +76,7 @@ export function MealDetails() {
       </div>
       <div className="space-y-4">
         {meal.food_entries.map((food) => (
-          <article key={food.id} className="rounded-lg border bg-card p-4">
+          <article key={food.id} className="surface-card p-4">
             <div className="flex items-baseline justify-between gap-2">
               <h2 className="font-medium">{food.food_name}</h2>
               <p className="text-sm text-muted-foreground">
@@ -108,7 +108,7 @@ export function MealDetails() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <div className="surface-card p-4">
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="mt-1 font-medium">{value}</p>
     </div>

@@ -4,7 +4,7 @@ import { formatGrams } from "@/utils/meals";
 
 export function RecentFoods({ foods }: { foods: RecentFood[] }) {
   if (foods.length === 0) {
-    return <p className="text-sm text-muted-foreground">No foods logged today.</p>;
+    return <p className="text-sm leading-relaxed text-muted-foreground">No foods logged yet. Add a meal to see recent entries here.</p>;
   }
 
   return (

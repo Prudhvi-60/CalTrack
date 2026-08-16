@@ -139,10 +139,12 @@ export function Goals() {
       )}
 
       {!goalsQuery.isLoading && !current && !goalsQuery.isError && (
-        <EmptyState title="No goals yet">Enter targets below to start tracking progress.</EmptyState>
+        <EmptyState title="No goals yet">
+          Enter daily calorie and macro targets to start tracking progress.
+        </EmptyState>
       )}
 
-      <form className="max-w-xl space-y-4 rounded-lg border bg-card p-6" onSubmit={form.handleSubmit(onSubmit)} noValidate>
+      <form className="surface-card max-w-xl space-y-4 p-6" onSubmit={form.handleSubmit(onSubmit)} noValidate>
         <h2 className="text-lg font-medium">{current ? "Update targets" : "Create targets"}</h2>
         <Field label="Daily calories (kcal)" id="daily_calorie_target" error={form.formState.errors.daily_calorie_target?.message}>
           <Input id="daily_calorie_target" type="number" min={0} step="1" {...form.register("daily_calorie_target")} />

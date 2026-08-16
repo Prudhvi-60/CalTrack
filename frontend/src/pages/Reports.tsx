@@ -39,7 +39,7 @@ export function Reports() {
         title="Reports"
         description="Calorie trends, macros, goal comparison, and micronutrients for the selected period."
         actions={
-          <div className="flex rounded-md border p-1" role="group" aria-label="Time range">
+          <div className="flex flex-wrap rounded-[12px] border border-border bg-card p-1" role="group" aria-label="Time range">
             {RANGES.map((range) => (
               <Button
                 key={range}
@@ -73,28 +73,28 @@ export function Reports() {
         />
       )}
 
-      <article className="rounded-lg border bg-card p-4">
+      <article className="surface-card p-4 sm:p-5">
         <h2 className="text-sm font-medium">Calories</h2>
         {trendsQuery.data && <CalorieTrendChart days={trendsQuery.data.items} />}
       </article>
 
-      <article className="rounded-lg border bg-card p-4">
+      <article className="surface-card p-4 sm:p-5">
         <h2 className="text-sm font-medium">Protein, carbs, and fat</h2>
         {trendsQuery.data && <MacroTrendChart days={trendsQuery.data.items} />}
       </article>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-lg border bg-card p-4">
+        <article className="surface-card p-4 sm:p-5">
           <h2 className="text-sm font-medium">Macronutrients</h2>
           {totals && <MacroBarChart totals={totals} />}
         </article>
-        <article className="rounded-lg border bg-card p-4">
+        <article className="surface-card p-4 sm:p-5">
           <h2 className="text-sm font-medium">Macro distribution</h2>
           {totals && <MacroDistributionChart totals={totals} emptyMessage="No macros logged in this range." />}
         </article>
       </div>
 
-      <article className="rounded-lg border bg-card p-4">
+      <article className="surface-card p-4 sm:p-5">
         <h2 className="text-sm font-medium">Goal vs actual</h2>
         {comparisonQuery.data &&
           (comparisonQuery.data.has_goals ? (
@@ -104,7 +104,7 @@ export function Reports() {
           ))}
       </article>
 
-      <article className="rounded-lg border bg-card p-4">
+      <article className="surface-card p-4 sm:p-5">
         <h2 className="text-sm font-medium">Micronutrients</h2>
         <p className="mt-1 text-xs text-muted-foreground">Totals for the selected range from logged meals.</p>
         <div className="mt-3">{microsQuery.data && <MicronutrientPanel items={microsQuery.data.items} />}</div>

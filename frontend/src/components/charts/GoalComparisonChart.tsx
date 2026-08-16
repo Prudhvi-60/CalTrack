@@ -13,12 +13,12 @@ export function GoalComparisonChart({ items }: { items: GoalComparisonItem[] }) 
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-          <YAxis tick={{ fontSize: 12 }} width={40} />
+          <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#68766F" }} />
+          <YAxis tick={{ fontSize: 12, fill: "#68766F" }} width={40} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="Actual" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="Target" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="Actual" fill="#245C4A" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="Target" fill="#8FB5A5" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

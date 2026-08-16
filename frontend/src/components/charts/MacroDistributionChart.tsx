@@ -1,7 +1,8 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { MacroSnapshot } from "@/types/nutrition";
+import { chartColors } from "@/theme/palette";
 
-const COLORS = ["hsl(210 50% 40%)", "hsl(32 80% 50%)", "hsl(350 55% 45%)"];
+const COLORS = [chartColors.protein, chartColors.carbs, chartColors.fat];
 
 export function MacroDistributionChart({
   totals,

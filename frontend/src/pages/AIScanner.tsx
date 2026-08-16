@@ -113,10 +113,14 @@ export function AIScanner() {
     <section className="space-y-6">
       <PageHeader
         title="AI food scanner"
-        description="Upload a food photo or nutrition label. A multimodal model estimates foods, portions, and nutrition in one pass. Everything is approximate. Review and edit before saving. Nothing is stored until you confirm."
+        description="Understand what’s on your plate. Upload a food photo or nutrition label. Estimates are approximate — review before saving. Nothing is stored until you confirm."
       />
 
-      <div className="space-y-4 rounded-lg border bg-card p-4">
+      <div className="surface-card space-y-4 p-4 sm:p-6">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">Premium analysis for meals and labels</p>
+          <span className="ai-badge">AI</span>
+        </div>
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium">Image type</legend>
           <label className="mr-4 text-sm">
@@ -140,19 +144,23 @@ export function AIScanner() {
             Nutrition label
           </label>
         </fieldset>
-        <div className="space-y-2">
-          <label htmlFor="food-image" className="text-sm font-medium">
+        <div className="upload-zone">
+          <label htmlFor="food-image" className="text-sm font-medium text-forest">
             Image
           </label>
+          <p className="mt-1 text-xs text-muted-foreground">JPEG, PNG, or WebP · up to 5 MB</p>
           <input
             id="food-image"
             type="file"
             accept="image/jpeg,image/png,image/webp"
+            className="mx-auto mt-3 block w-full max-w-full text-sm"
             onChange={(event) => onFileChange(event.target.files?.[0] ?? null)}
           />
         </div>
         {preview && (
-          <img src={preview} alt="Selected food or label preview" className="max-h-64 rounded-md border object-contain" />
+          <div className="overflow-hidden rounded-[14px] border border-border bg-secondary/50 p-3">
+            <img src={preview} alt="Selected food or label preview" className="mx-auto max-h-64 w-full object-contain" />
+          </div>
         )}
         {error && <ErrorAlert message={error} />}
         <Button type="button" onClick={() => void onAnalyze()} disabled={analyzing || !file} aria-busy={analyzing}>
@@ -162,31 +170,76 @@ export function AIScanner() {
 
       {analysis && (
         <div className="space-y-4">
-          <div className="rounded-lg border bg-accent/40 p-4 text-sm">
-            <p>
-              Overall confidence: <span className="font-medium">{Math.round(analysis.confidence * 100)}%</span>
-              {analysis.meal_type ? ` · Suggested meal: ${analysis.meal_type.toLowerCase()}` : ""}
-            </p>
-            <p className="mt-2 text-muted-foreground">
+          <div className="surface-card space-y-4 p-4 sm:p-6 text-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p>
+                Overall confidence: <span className="font-medium">{Math.round(analysis.confidence * 100)}%</span>
+                {analysis.meal_type ? ` · Suggested meal: ${analysis.meal_type.toLowerCase()}` : ""}
+              </p>
+              <span className="ai-badge">AI estimate</span>
+            </div>
+            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+              {(() => {
+                const totals = analysis.food_items.reduce(
+                  (acc, item) => ({
+                    calories: acc.calories + item.calories,
+                    protein: acc.protein + item.protein,
+                    carbohydrates: acc.carbohydrates + item.carbohydrates,
+                    fat: acc.fat + item.fat,
+                    fiber: acc.fiber + item.fiber,
+                  }),
+                  { calories: 0, protein: 0, carbohydrates: 0, fat: 0, fiber: 0 },
+                );
+                return (
+                  <>
+                    <div className="rounded-[12px] border border-border bg-card p-3">
+                      <dt className="text-xs text-muted-foreground">Calories</dt>
+                      <dd className="mt-1 text-lg font-semibold tabular-nums">{Math.round(totals.calories)}</dd>
+                    </div>
+                    <div className="rounded-[12px] border border-border bg-card p-3">
+                      <dt className="text-xs text-muted-foreground">Protein</dt>
+                      <dd className="mt-1 text-lg font-semibold tabular-nums">{Math.round(totals.protein)} g</dd>
+                    </div>
+                    <div className="rounded-[12px] border border-border bg-card p-3">
+                      <dt className="text-xs text-muted-foreground">Carbs</dt>
+                      <dd className="mt-1 text-lg font-semibold tabular-nums">{Math.round(totals.carbohydrates)} g</dd>
+                    </div>
+                    <div className="rounded-[12px] border border-border bg-card p-3">
+                      <dt className="text-xs text-muted-foreground">Fat</dt>
+                      <dd className="mt-1 text-lg font-semibold tabular-nums">{Math.round(totals.fat)} g</dd>
+                    </div>
+                    <div className="rounded-[12px] border border-border bg-card p-3">
+                      <dt className="text-xs text-muted-foreground">Fiber</dt>
+                      <dd className="mt-1 text-lg font-semibold tabular-nums">{Math.round(totals.fiber)} g</dd>
+                    </div>
+                  </>
+                );
+              })()}
+            </dl>
+            <p className="text-muted-foreground">
               These are estimates, not lab measurements. Edit any name, quantity, or nutrient value before saving.
             </p>
-            <ul className="mt-3 space-y-2">
+            <ul className="space-y-2">
               {analysis.food_items.map((item, index) => (
-                <li key={`${item.name}-${index}`} className="rounded-md border bg-background/80 p-3">
+                <li key={`${item.name}-${index}`} className="rounded-[12px] border border-border bg-secondary/60 p-3">
                   <p className="font-medium">
                     {item.name} · {item.quantity} {item.unit}
                     {item.estimated_weight_g != null ? ` · ~${Math.round(Number(item.estimated_weight_g))} g` : ""}
                   </p>
-                  <p className="text-muted-foreground">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {confidenceCopy(item.confidence_level, item.confidence)}
                     {item.nutrition_source === "llm" ? " · Estimated nutrition (AI)" : ""}
                     {item.nutrition_source === "database" ? " · Nutrition from food database" : ""}
                     {item.nutrition_source === "label" ? " · Nutrition from label" : ""}
                   </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {Math.round(item.calories)} kcal · P {Math.round(item.protein)} · C {Math.round(item.carbohydrates)} · F{" "}
+                    {Math.round(item.fat)}
+                  </p>
                 </li>
               ))}
             </ul>
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-muted-foreground">
+            <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
               {analysis.warnings.map((warning) => (
                 <li key={warning}>{warning}</li>
               ))}

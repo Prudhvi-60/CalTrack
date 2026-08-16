@@ -16,13 +16,13 @@ export function CalorieTrendChart({ days }: { days: DayPoint[] }) {
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis dataKey="label" tick={{ fontSize: 12 }} interval={interval} />
-          <YAxis tick={{ fontSize: 12 }} width={48} />
+          <XAxis dataKey="label" tick={{ fontSize: 12, fill: "#68766F" }} interval={interval} />
+          <YAxis tick={{ fontSize: 12, fill: "#68766F" }} width={48} />
           <Tooltip formatter={(value: number) => [`${Math.round(value)} kcal`, "Calories"]} />
           <Line
             type="monotone"
             dataKey="calories"
-            stroke="hsl(var(--primary))"
+            stroke="#245C4A"
             strokeWidth={2}
             dot={compact ? false : { r: 3 }}
           />

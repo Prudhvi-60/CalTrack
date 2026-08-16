@@ -11,9 +11,15 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        forest: "#245C4A",
+        sage: "#8FB5A5",
+        terracotta: "#C98268",
+        gold: "#D7B56D",
+        success: "#4F8A6A",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          soft: "#E5F0EB",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -38,8 +44,14 @@ const config: Config = {
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "0.7rem",
+        sm: "0.5rem",
+      },
+      transitionDuration: {
+        DEFAULT: "200ms",
+      },
+      transitionTimingFunction: {
+        DEFAULT: "cubic-bezier(0, 0, 0.2, 1)",
       },
     },
   },

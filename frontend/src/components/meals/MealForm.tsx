@@ -12,7 +12,7 @@ import { fromDateTimeLocal } from "@/utils/datetime";
 import { cn } from "@/utils/cn";
 
 const selectClass =
-  "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "flex h-10 w-full rounded-[11px] border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:border-sage focus-visible:ring-2 focus-visible:ring-sage/30";
 
 type MealFormProps = {
   defaultValues: MealFormValues;
@@ -112,7 +112,7 @@ function FoodFields({
   const errors = form.formState.errors.food_entries?.[index];
 
   return (
-    <div className="space-y-4 rounded-lg border bg-card p-4">
+    <div className="surface-card space-y-4 p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium">Food {index + 1}</h3>
         {canRemove && (

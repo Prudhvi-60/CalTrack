@@ -14,7 +14,7 @@ import { PageSkeleton } from "@/components/ui/skeleton";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 const selectClass =
-  "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "flex h-10 w-full rounded-[11px] border border-input bg-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:border-sage focus-visible:ring-2 focus-visible:ring-sage/30";
 
 export function Meals() {
   usePageTitle("Meals");
@@ -64,7 +64,7 @@ export function Meals() {
         }
       />
 
-      <form className="grid gap-3 rounded-lg border bg-card p-4 md:grid-cols-6" onSubmit={onFilterSubmit}>
+      <form className="surface-card grid gap-3 p-4 md:grid-cols-6" onSubmit={onFilterSubmit}>
         <label className="space-y-1 text-sm md:col-span-1">
           <span className="font-medium">Date</span>
           <Input name="date" type="date" defaultValue={filters.date ?? ""} />
@@ -108,8 +108,9 @@ export function Meals() {
         />
       )}
       {!mealsQuery.isLoading && !mealsQuery.isError && items.length === 0 && (
-        <EmptyState title="No meals match these filters">
-          <Link className="text-primary underline" to="/meals/new">
+        <EmptyState title="No meals logged yet">
+          Start by adding your first meal to see your nutrition summary.{" "}
+          <Link className="text-forest underline underline-offset-2" to="/meals/new">
             Log a meal
           </Link>
         </EmptyState>
@@ -117,7 +118,7 @@ export function Meals() {
 
       {items.length > 0 && (
         <>
-          <div className="hidden overflow-x-auto rounded-lg border md:block">
+          <div className="hidden overflow-x-auto rounded-[16px] border border-border md:block">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="bg-muted/60">
                 <tr>
@@ -167,7 +168,7 @@ export function Meals() {
 
           <div className="space-y-3 md:hidden">
             {items.map((meal) => (
-              <article key={meal.id} className="rounded-lg border bg-card p-4">
+              <article key={meal.id} className="surface-card p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="font-medium">{MEAL_TYPE_LABELS[meal.meal_type]}</p>
