@@ -1,0 +1,90 @@
+{
+  "description": "Fixture vision outputs for hybrid pipeline evaluation. Add real JPEGs later; tests do not require the image files.",
+  "cases": [
+    {
+      "id": "rice",
+      "image": "rice.jpg",
+      "image_available": false,
+      "vision": {
+        "food_items": [{"name": "white rice", "quantity": 1, "unit": "cup", "confidence": 0.91}],
+        "meal_type": "lunch",
+        "notes": "Bowl of rice."
+      },
+      "expect_normalized": "rice",
+      "expect_lookup": true,
+      "expect_weight_g": 158
+    },
+    {
+      "id": "dal",
+      "image": "dal.jpg",
+      "image_available": false,
+      "vision": {
+        "food_items": [{"name": "lentil curry", "quantity": 1, "unit": "cup", "confidence": 0.88}],
+        "notes": "Yellow dal."
+      },
+      "expect_normalized": "dal",
+      "expect_lookup": true,
+      "expect_weight_g": 198
+    },
+    {
+      "id": "chapati",
+      "image": "chapati.jpg",
+      "image_available": false,
+      "vision": {
+        "food_items": [{"name": "chapatis", "quantity": 2, "unit": "piece", "confidence": 0.9}],
+        "notes": "Two rotis."
+      },
+      "expect_normalized": "chapati",
+      "expect_lookup": true,
+      "expect_weight_g": 80
+    },
+    {
+      "id": "idli",
+      "image": "idli.jpg",
+      "image_available": false,
+      "vision": {
+        "food_items": [{"name": "idlis", "quantity": 3, "unit": "piece", "confidence": 0.86}],
+        "notes": "Steamed idli."
+      },
+      "expect_normalized": "idli",
+      "expect_lookup": true,
+      "expect_weight_g": 120
+    },
+    {
+      "id": "dosa",
+      "image": "dosa.jpg",
+      "image_available": false,
+      "vision": {
+        "food_items": [{"name": "masala dosa", "quantity": 1, "unit": "piece", "confidence": 0.84}],
+        "notes": "One dosa."
+      },
+      "expect_normalized": "dosa",
+      "expect_lookup": true,
+      "expect_weight_g": 80
+    },
+    {
+      "id": "biryani",
+      "image": "biryani.jpg",
+      "image_available": false,
+      "vision": {
+        "food_items": [{"name": "chicken biryani", "quantity": 1, "unit": "bowl", "confidence": 0.8}],
+        "notes": "Mixed rice dish; portion is uncertain."
+      },
+      "expect_normalized": "biryani",
+      "expect_lookup": true,
+      "expect_weight_g": 262.5
+    },
+    {
+      "id": "egg",
+      "image": "egg.jpg",
+      "image_available": false,
+      "vision": {
+        "food_items": [{"name": "boiled eggs", "quantity": 2, "unit": "piece", "confidence": 0.93}],
+        "notes": "Two eggs."
+      },
+      "expect_normalized": "egg",
+      "expect_lookup": true,
+      "expect_weight_g": 100
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "minimum_accuracy": 0.90,
+  "minimum_f1": 0.90,
+  "minimum_improvement": 0.01,
+  "auto_promote": false,
+  "min_samples_to_train": 50,
+  "include_confirmed_in_training": false
+}

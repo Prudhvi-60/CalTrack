@@ -1,0 +1,63 @@
+# Environment
+.env
+.env.*
+!.env.example
+!frontend/.env.example
+!backend/.env.example
+frontend/.env
+frontend/.env.local
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Alembic
+backend/alembic/versions/*.pyc
+
+# Uploads
+uploads/
+*.tmp
+
+# Training data and checkpoints (user images must not be committed)
+training/data/raw/images/*
+!training/data/raw/images/.gitkeep
+training/data/train/*
+!training/data/train/.gitkeep
+training/data/validation/*
+!training/data/validation/.gitkeep
+training/data/test/*
+!training/data/test/.gitkeep
+training/data/*.jsonl
+training/models/checkpoints/
+training/reports/*.json
+!training/reports/.gitkeep
+training/reports/*.md
+!training/README.md

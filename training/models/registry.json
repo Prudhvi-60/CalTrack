@@ -1,0 +1,16 @@
+{
+  "models": [
+    {
+      "model_name": "caltrack-food",
+      "version": "caltrack-food-v0",
+      "training_dataset_version": "none",
+      "accuracy": null,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "created_at": "2026-08-16T00:00:00+00:00",
+      "status": "production",
+      "notes": "External cloud vision. Nutrition from the CalTrack database. Not a local classifier."
+    }
+  ]
+}
