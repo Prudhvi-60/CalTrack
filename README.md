@@ -1,58 +1,104 @@
 # CalTrack
 
-Personal calorie tracker for daily nutrition, meals, goals, reports, and optional AI food scanning.
+CalTrack is a personal calorie tracker. You log what you eat, set daily nutrition goals, and see how you are doing over time — including photos of food, a nutrition chat, and PDF food-diary import.
 
-AI nutrition values are estimates. Users must review and confirm them before anything is saved.
+This project follows the **Typeface India Software Engineer project assignment**: a full-stack app with a website (frontend) that talks to a separate API (backend), which stores data in a database.
 
-## Architecture
+**AI numbers are estimates.** Review them before you save. Nothing from a photo or PDF is stored until you confirm.
 
-```
-React (Vite)  →  REST /api/v1  →  FastAPI  →  PostgreSQL
-                                      ↓
-                                 AI provider
-```
+---
 
-The browser talks **only** to the FastAPI REST API. It never opens PostgreSQL or the AI provider. Access JWTs stay in memory; refresh tokens are HttpOnly cookies on the API origin.
+## Try it (no setup)
 
-**Local**
+| What | Link |
+| --- | --- |
+| **Website (sign in)** | [https://frontend-production-15c16.up.railway.app/login](https://frontend-production-15c16.up.railway.app/login) |
+| **Website (home)** | [https://frontend-production-15c16.up.railway.app](https://frontend-production-15c16.up.railway.app) |
+| **API documentation** | [https://caltrack-production-c5cd.up.railway.app/docs](https://caltrack-production-c5cd.up.railway.app/docs) |
+| **API health** | [https://caltrack-production-c5cd.up.railway.app/health](https://caltrack-production-c5cd.up.railway.app/health) |
 
-```
-Vite :5173  --proxy /api-->  FastAPI :8001  →  PostgreSQL (local or Supabase)
-```
+1. Open the website and **create an account** (Register), then sign in.
+2. Set goals, log a meal, open Reports, try **AI Scan**, **Chat**, or **Import**.
+3. Open the API docs if you want to see the same features as technical endpoints.
 
-**Production**
+Your meals and goals belong only to your account. Other people cannot see them.
 
-```
-Internet → Vercel (React + Vite)
-              HTTPS
-         Railway (FastAPI)
-              ├─ PostgreSQL (Supabase)
-              └─ AI provider
-```
+---
 
-## Local Development
+## What you can do
 
-Prerequisites: Python 3.12+, Node 20+, PostgreSQL 16 (or Docker), Git.
+| In the assignment | In CalTrack |
+| --- | --- |
+| Set health goals | Daily calories, protein, carbs, fat, optional weight goal |
+| Log meals | Breakfast, lunch, dinner, snacks — food name, quantity, calories, macros, micros |
+| List food over a time range | Meals page: filter by date, date range, meal type, search; pages of results |
+| Nutrition reports and graphs | Dashboard + Reports: calorie trend, macros, micronutrients, goal vs actual |
+| AI from a photo | AI Scan: plate or nutrition label → review → save |
+| Chat (bonus) | Ask in plain English to log meals, check remaining calories, or get summaries |
+| Several users (bonus) | Sign up / log in; each person has private data |
+| Import a PDF (bonus) | Upload a food diary or meal-plan PDF, review, then save |
+
+The website never talks to the database or to Google Gemini directly. It only calls the CalTrack API.
+
+---
+
+## How to use the website
+
+1. **Register** with your name, email, and password, then **sign in**.
+2. **Goals** — set a daily calorie target and macro targets.
+3. **Log meal** — add foods by hand, or use **AI Scan** / **Import**.
+4. **Dashboard** — today vs your goals.
+5. **Meals** — history, filters, edit, delete.
+6. **Reports** — 7 / 30 / 90 day charts.
+7. **Chat** — text only. Photos go to AI Scan.
+8. **Settings** — name, password, optional training opt-in, sign out.
+
+---
+
+## Run it on your computer
+
+You need: **Git**, **Python 3.12+**, **Node 20+**, and **PostgreSQL** (or Docker).
 
 ```bash
-git clone <your-github-repo>
+git clone https://github.com/Prudhvi-60/CalTrack.git
 cd CalTrack
+```
+
+**Windows**
+
+```bash
 copy .env.example .env
 copy frontend\.env.example frontend\.env
 ```
 
-Leave `VITE_API_URL` empty locally so Vite proxies `/api` to the backend.
+**macOS / Linux**
+
+```bash
+cp .env.example .env
+cp frontend/.env.example frontend/.env
+```
+
+Leave `VITE_API_URL` empty locally so the website uses the built-in `/api` proxy (same-site cookies work).
+
+**Database + API**
 
 ```bash
 docker compose up postgres -d
 cd backend
 python -m venv .venv
-.venv\Scripts\activate
+```
+
+Windows: `.venv\Scripts\activate`  
+macOS / Linux: `source .venv/bin/activate`
+
+```bash
 pip install -r requirements.txt
 alembic upgrade head
 python -m scripts.seed
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 ```
+
+**Website** (another terminal)
 
 ```bash
 cd frontend
@@ -60,132 +106,72 @@ npm install
 npm run dev
 ```
 
-App: http://localhost:5173  
-API docs: http://127.0.0.1:8001/docs  
-Health: http://127.0.0.1:8001/health
-
-Optional full Docker stack: `docker compose up --build`.
-
-## Production Architecture
-
-| Piece | Host | Role |
-| --- | --- | --- |
-| Frontend | Vercel | React + Vite static `dist/` |
-| Backend | Railway | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
-| Database | Supabase PostgreSQL | `DATABASE_URL` / `SUPABASE_DATABASE_URL` |
-| AI | Gemini | Called only from Railway |
-
-Do not put `DATABASE_URL`, `JWT_SECRET_KEY`, or `GEMINI_API_KEY` in Vercel or in frontend source.
-
-Step-by-step launch: [docs/DEPLOYMENT_VERCEL_RAILWAY.md](docs/DEPLOYMENT_VERCEL_RAILWAY.md).
-
-## GitHub Setup
-
-1. Create a private GitHub repository.
-2. Confirm `.env` is gitignored.
-3. Push the project. Do not commit secrets.
-4. Connect that repo to Railway and Vercel.
-
-## Railway Setup
-
-1. New project → deploy from GitHub.
-2. **Root Directory:** `backend`
-3. Railway reads `backend/railway.toml`.
-4. **Start:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-5. Set `DATABASE_URL` on the **API** service to the **Supabase Session pooler** URI (port 5432), or `SUPABASE_DATABASE_URL`. Do not use `${{Postgres.DATABASE_URL}}`.
-6. Set the other variables below.
-7. `preDeployCommand` runs `alembic upgrade head`.
-8. Generate a public domain. Open `https://<service>.up.railway.app/health`.
-
-## Vercel Setup
-
-1. New Project → import the GitHub repo.
-2. Framework: Vite. **Root Directory:** `frontend`
-3. Build: `npm run build`. Output: `dist`. Install: `npm install`
-4. `frontend/vercel.json` rewrites unknown paths to `index.html`.
-5. Set `VITE_API_URL` to the Railway origin **without** a trailing slash.
-6. Redeploy after changing `VITE_API_URL` (it is baked in at build time).
-
-## Environment Variables
-
-### Frontend (Vercel)
-
-| Variable | Local | Production |
-| --- | --- | --- |
-| `VITE_API_URL` | empty (proxy) | `https://<railway-host>` |
-| `VITE_API_TIMEOUT_MS` | `30000` | `30000` |
-
-Legacy name `VITE_API_BASE_URL` is still read if `VITE_API_URL` is unset.
-
-### Backend (Railway)
-
-| Variable | Notes |
+| Local | URL |
 | --- | --- |
-| `ENVIRONMENT` | `production` |
-| `LOG_LEVEL` | `INFO` |
-| `DATABASE_URL` | Supabase Postgres URI (Session pooler `:5432`). Alias: `SUPABASE_DATABASE_URL` |
-| `JWT_SECRET_KEY` | Long random secret (required; app refuses the default in production) |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `15` |
-| `REFRESH_TOKEN_EXPIRE_DAYS` | `14` |
-| `COOKIE_SECURE` | `true` |
-| `COOKIE_SAMESITE` | `none` (cross-site Vercel ↔ Railway) |
-| `FRONTEND_URL` | Vercel origin, e.g. `https://<project>.vercel.app` |
-| `CORS_ORIGINS` | Same as `FRONTEND_URL` |
-| `GEMINI_API_KEY` | Google Gemini secret (server only) |
-| `AI_MODEL` | `gemini-2.5-flash-lite` |
+| Website | [http://localhost:5173](http://localhost:5173) |
+| API docs | [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs) |
+| Health | [http://127.0.0.1:8001/health](http://127.0.0.1:8001/health) |
 
-Placeholders: `.env.example`, `backend/.env.example`, `frontend/.env.example`.
-
-## Database Migration
-
-Production schema is created **only** with Alembic. `Base.metadata.create_all()` is not used.
-
-`backend/railway.toml` runs `alembic upgrade head` before each deploy. Manual fallback in Railway shell:
-
-```bash
-alembic upgrade head
-```
-
-Never run `alembic downgrade` on production data unless you intend to drop tables.
-
-## CORS Configuration
-
-FastAPI allows only origins in `CORS_ORIGINS` plus `FRONTEND_URL`. Credentials are enabled. Wildcards are ignored. Update both variables when you add a custom domain.
-
-## AI Configuration
-
-The scanner and chat call the provider from Railway. Missing keys return `AI_NOT_CONFIGURED` (503). Timeouts, rate limits, and invalid JSON become structured API errors without provider payloads.
-
-## Health Checks
-
-| URL | Auth | Meaning |
-| --- | --- | --- |
-| `GET /health` | no | `{"status":"ok"}` |
-| `GET /health/ready` | no | process + PostgreSQL |
-| `GET /health/db` | no | same as ready |
-
-## Troubleshooting
-
-- **Login works, then 401 after 15 minutes:** refresh cookie blocked as third-party. Confirm `COOKIE_SAMESITE=none`, `COOKIE_SECURE=true`, CORS credentials, and `withCredentials`. A custom domain for both apps is the durable fix.
-- **CORS error:** Vercel origin missing from `FRONTEND_URL` / `CORS_ORIGINS` (no trailing slash).
-- **Blank API calls on Vercel:** `VITE_API_URL` empty at build time; set it and redeploy.
-- **Database SSL / driver errors:** Supabase URIs get `sslmode=require`. Use Session pooler `:5432` for FastAPI. Port `:6543` is transaction mode.
-- **Migration failed:** Railway shell → `alembic current` then `alembic upgrade head`.
-
-## Security Notes
-
-- HttpOnly refresh cookie; access token in memory only.
-- Production cookies are Secure + SameSite=None for split Vercel/Railway hosts.
-- Users can only read their own meals, goals, nutrition, and AI feedback.
-- Uploads are sniffed as JPEG/PNG/WEBP, size-capped, dimension-capped, and stored under generated names when opted in.
-- Do not log passwords, JWTs, refresh tokens, or API keys.
-- Rotate `JWT_SECRET_KEY` if it was ever committed or shared.
-
-## Demo
-
-After `python -m scripts.seed` locally:
+Local demo user (created by `python -m scripts.seed` — **not** for the public Railway site):
 
 - Email: `demo@caltrack.app`
 - Password: `DemoPass123!`
 
-Do not seed demo credentials into production unless you intend to.
+Optional: `docker compose up --build` runs the full stack.
+
+### Tests
+
+```bash
+cd backend
+pytest
+cd ../frontend
+npm test
+npm run build
+```
+
+---
+
+## How it is built (short)
+
+```
+Your browser  →  CalTrack website  →  CalTrack API  →  PostgreSQL
+                                      ↓
+                                 Gemini (photos, chat, PDF)
+```
+
+| Layer | Technology |
+| --- | --- |
+| Website | React + Vite + TypeScript |
+| API | FastAPI (Python) |
+| Database | PostgreSQL (Alembic migrations) |
+| AI | Google Gemini, called only from the API |
+
+Sign-in uses the API (JWT in memory + HttpOnly refresh cookie). This is **not** a switch to a third-party login product.
+
+More detail: [docs/architecture.md](docs/architecture.md) · [docs/requirements-checklist.md](docs/requirements-checklist.md) · [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
+---
+
+## Assumptions
+
+- Nutrition from photos and chat is **estimated**, not lab-accurate. You confirm before save (chat tools that log a meal are validated on the server, then saved).
+- Days in reports use **UTC** calendar dates, not your phone’s local timezone.
+- Micronutrients are whatever you (or AI) enter; they are not a complete lab panel.
+- PDF import works best with a readable diary or meal plan. Scanned or messy PDFs may need edits on the review screen.
+- Chat is **text**. Food photos belong on AI Scan.
+- Production secrets (`DATABASE_URL`, `JWT_SECRET_KEY`, `GEMINI_API_KEY`) stay on the API host only — never in the website.
+- If AI is not configured, scan/chat/import return a clear error instead of crashing.
+- Local demo login is only after seeding your own database. Register on the live site.
+
+---
+
+## If something goes wrong
+
+| Problem | What to try |
+| --- | --- |
+| Live site will not sign in | Register a new account; confirm you are on the Railway website URL above |
+| API docs open, website cannot load data | The website must be allowed in the API CORS / `FRONTEND_URL` settings |
+| Photo analysis fails | JPEG, PNG, or WebP, under 5 MB; Gemini must be configured on the API |
+| Local login works then drops | Keep `VITE_API_URL` empty so the Vite proxy is used |
+
+Do not commit `.env` files or API keys.
