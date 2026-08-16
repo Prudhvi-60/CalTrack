@@ -8,6 +8,12 @@ This project follows the **Typeface India Software Engineer project assignment**
 
 ---
 
+## Demo video
+
+Watch a short walkthrough of CalTrack: [docs/demo/Demo_Video.mp4](docs/demo/Demo_Video.mp4)
+
+---
+
 ## Try it (no setup)
 
 | What | Link |
