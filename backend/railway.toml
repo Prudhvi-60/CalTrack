@@ -6,7 +6,7 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+startCommand = "sh -c 'uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}'"
 preDeployCommand = "alembic upgrade head"
 # Process health (also available at /api/v1/health). Use /health/ready for Postgres.
 healthcheckPath = "/health"
