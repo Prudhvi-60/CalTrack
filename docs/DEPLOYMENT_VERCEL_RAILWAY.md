@@ -3,14 +3,14 @@
 This repository is **deployment-ready**. It is **not** deployed until you complete these steps. Do not put secrets in git.
 
 ```
-Internet → Vercel (React + Vite)
+Internet → Railway or Vercel (React + Vite)
               HTTPS
          Railway FastAPI
-              ├─ Railway PostgreSQL
-              └─ AI provider
+              ├─ Supabase PostgreSQL (DATABASE_URL)
+              └─ Gemini
 ```
 
-Local development is unchanged: Vite `:5173` proxies `/api` to FastAPI `:8000` and local PostgreSQL.
+Local development is unchanged: Vite `:5173` proxies `/api` to FastAPI and local or configured PostgreSQL.
 
 ## Production test checklist
 
@@ -18,7 +18,7 @@ Local development is unchanged: Vite `:5173` proxies `/api` to FastAPI `:8000` a
 - [ ] No secrets committed (`git ls-files .env` is empty)
 - [ ] Railway backend created
 - [ ] Railway environment variables configured
-- [ ] PostgreSQL configured (Railway plugin)
+- [ ] PostgreSQL configured (Supabase Session pooler, not Railway Postgres)
 - [ ] Alembic migrations executed
 - [ ] Railway backend deployed
 - [ ] `/health` works
@@ -125,7 +125,7 @@ CalTrack uses **Supabase Postgres** as the cloud database. The React app never c
 5. The API rewrites `postgres://` to `postgresql+psycopg://` and adds `sslmode=require` for Supabase hosts.
 6. Transaction pooler (**port 6543**) is supported but uses a NullPool (PgBouncer transaction mode). Prefer 5432 for this app.
 
-Do not put the Supabase URI, `anon` key, or `service_role` key in Vercel or any `VITE_*` variable. Do not use the Supabase JS client in the frontend.
+Do not put the Supabase URI, `anon` key, or `service_role` key in the frontend or any `VITE_*` variable. Do not use the Supabase JS client. Auth remains FastAPI JWT.
 
 Then run migrations against that database (`alembic upgrade head` on Railway pre-deploy).
 

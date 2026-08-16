@@ -43,6 +43,17 @@ The backend rewrites `postgres://` to `postgresql+psycopg://` and adds `sslmode=
 
 Never commit this URI. Never put it in Vercel or `VITE_*`.
 
+### Cut over from Railway Postgres (keep the plugin until verified)
+
+1. Leave the Railway Postgres service running.
+2. On the **API** service, replace `DATABASE_URL=${{Postgres.DATABASE_URL}}` with the Supabase Session pooler URI (port **5432**).
+3. Redeploy. Pre-deploy runs `alembic upgrade head` against Supabase (creates schema if empty; no-op if already at `0004_ai_feedback`).
+4. If Railway Postgres already has production rows, copy them to Supabase **before** switching traffic (`pg_dump` / restore, or Supabase SQL). Switching the URL without a restore points the app at an empty database.
+5. Check `GET /api/v1/health/ready`, register/login, and that rows appear in the Supabase Table Editor (`users`, `meals`, …).
+6. Only then remove the Railway Postgres plugin and any `${{Postgres.DATABASE_URL}}` reference.
+
+Do not enable Supabase Auth, RLS, or Storage for this cutover. FastAPI JWT and SQLAlchemy stay as they are.
+
 ---
 
 ## 3. Railway environment variables

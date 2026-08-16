@@ -92,7 +92,7 @@ Step-by-step launch: [docs/DEPLOYMENT_VERCEL_RAILWAY.md](docs/DEPLOYMENT_VERCEL_
 2. **Root Directory:** `backend`
 3. Railway reads `backend/railway.toml`.
 4. **Start:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-5. Set `DATABASE_URL` to your **Supabase** connection URI (Session pooler, port 5432), or `SUPABASE_DATABASE_URL`.
+5. Set `DATABASE_URL` on the **API** service to the **Supabase Session pooler** URI (port 5432), or `SUPABASE_DATABASE_URL`. Do not use `${{Postgres.DATABASE_URL}}`.
 6. Set the other variables below.
 7. `preDeployCommand` runs `alembic upgrade head`.
 8. Generate a public domain. Open `https://<service>.up.railway.app/health`.
