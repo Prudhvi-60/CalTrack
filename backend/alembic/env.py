@@ -18,12 +18,14 @@ from app.models import (  # noqa: F401
 
 config = context.config
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", sqlalchemy_database_url(settings.database_url).replace("%", "%%"))
+_url = sqlalchemy_database_url(settings.resolved_database_url)
+# Always override alembic.ini. Never keep a localhost placeholder.
+config.set_main_option("sqlalchemy.url", _url.replace("%", "%%"))
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    url = sqlalchemy_database_url(settings.database_url)
+    url = sqlalchemy_database_url(settings.resolved_database_url)
     context.configure(
         url=url,
         target_metadata=target_metadata,

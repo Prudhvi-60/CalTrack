@@ -123,12 +123,12 @@ def test_production_settings_require_secrets() -> None:
             Settings.model_construct(
                 environment="production",
                 jwt_secret_key="change-me-to-a-long-random-secret",
-                database_url="postgresql+psycopg://caltrack:caltrack@localhost:5432/caltrack",
+                database_url="postgresql+psycopg://user:pass@db.example.com:5432/caltrack",
                 frontend_url="https://app.example.com",
                 cors_origins="",
             )
         )
-    with pytest.raises(RuntimeError, match="DATABASE_URL"):
+    with pytest.raises(RuntimeError, match="DATABASE_URL is not configured"):
         validate_production_settings(
             Settings.model_construct(
                 environment="production",
@@ -162,7 +162,7 @@ def test_production_rejects_short_jwt_and_sqlite() -> None:
                 ai_provider="Gemini",
             )
         )
-    with pytest.raises(RuntimeError, match="SQLite"):
+    with pytest.raises(RuntimeError, match="DATABASE_URL is not configured"):
         validate_production_settings(
             Settings.model_construct(
                 environment="production",
@@ -196,3 +196,63 @@ def test_settings_load_without_env_file() -> None:
     assert settings.environment == "development"
     assert settings.frontend_url
     assert settings.jwt_secret_key
+
+
+def test_development_falls_back_to_local_postgres() -> None:
+    settings = Settings(_env_file=None, database_url="")
+    assert "localhost" in settings.resolved_database_url
+
+
+def test_production_empty_database_url_fails() -> None:
+    settings = Settings.model_construct(environment="production", database_url="")
+    with pytest.raises(RuntimeError, match="DATABASE_URL is not configured"):
+        settings.resolved_database_url
+    with pytest.raises(RuntimeError, match="DATABASE_URL is not configured"):
+        validate_production_settings(settings)
+
+
+def test_railway_rejects_localhost_and_unresolved_template() -> None:
+    local = Settings.model_construct(
+        environment="development",
+        railway_environment="production",
+        railway_project_id="proj",
+        database_url="postgresql://postgres:postgres@127.0.0.1:5432/railway",
+    )
+    with pytest.raises(RuntimeError, match="DATABASE_URL is not configured"):
+        validate_production_settings(local)
+    unresolved = Settings.model_construct(
+        environment="development",
+        railway_project_id="proj",
+        database_url="${{Postgres.DATABASE_URL}}",
+    )
+    with pytest.raises(RuntimeError, match="DATABASE_URL is not configured"):
+        unresolved.resolved_database_url
+
+
+def test_railway_postgres_url_is_accepted() -> None:
+    settings = Settings(
+        environment="production",
+        railway_environment="production",
+        database_url="postgresql://postgres:pass@postgres.railway.internal:5432/railway",
+        jwt_secret_key="a-secure-production-jwt-secret-key!!",
+        frontend_url="https://app.example.com",
+        _env_file=None,
+    )
+    assert settings.resolved_database_url.startswith("postgresql://")
+    converted = sqlalchemy_database_url(settings.resolved_database_url)
+    assert converted.startswith("postgresql+psycopg://")
+    assert "postgres.railway.internal" in converted
+    assert "sslmode" not in converted
+    validate_production_settings(settings)
+
+
+def test_empty_env_database_url_does_not_become_localhost_on_railway(monkeypatch) -> None:
+    monkeypatch.setenv("RAILWAY_ENVIRONMENT", "production")
+    monkeypatch.setenv("RAILWAY_PROJECT_ID", "proj")
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("DATABASE_URL", "")
+    monkeypatch.setenv("JWT_SECRET_KEY", "a-secure-production-jwt-secret-key!!")
+    monkeypatch.setenv("FRONTEND_URL", "https://app.example.com")
+    settings = Settings(_env_file=None)
+    with pytest.raises(RuntimeError, match="DATABASE_URL is not configured"):
+        settings.resolved_database_url

@@ -27,6 +27,8 @@ def _database_label(raw_url: str) -> str:
     host = (urlsplit(raw_url).hostname or "").lower()
     if "supabase" in host:
         return "supabase"
+    if "railway" in host:
+        return "railway"
     if host in {"localhost", "127.0.0.1", "::1"}:
         return "local"
     return "remote"
@@ -46,7 +48,7 @@ logger.info("AI provider: %s", settings.ai_provider_name)
 logger.info("AI model: %s", settings.ai_model or "missing")
 logger.info("AI API key: %s", "configured" if settings.ai_configured else "not configured")
 logger.info("Database URL: %s", "configured" if bool(settings.database_url.strip()) else "missing")
-logger.info("Database: %s", _database_label(settings.database_url))
+logger.info("Database: %s", _database_label(settings.resolved_database_url))
 if not settings.ai_configured:
     logger.warning("GEMINI_API_KEY is missing. Food analysis and chat will return AI_NOT_CONFIGURED until it is set.")
 

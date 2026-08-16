@@ -4,7 +4,7 @@ from app.core.config import get_settings
 from app.core.database_url import engine_kwargs, sqlalchemy_database_url
 
 settings = get_settings()
-_url = sqlalchemy_database_url(settings.database_url)
+_url = sqlalchemy_database_url(settings.resolved_database_url)
 
 engine = create_engine(
     _url,

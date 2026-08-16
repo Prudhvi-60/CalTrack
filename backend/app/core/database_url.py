@@ -4,12 +4,14 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy.pool import NullPool
 
+_LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
 
 def sqlalchemy_database_url(raw: str) -> str:
-    """Normalize provider URLs (Supabase, Heroku-style postgres://) for SQLAlchemy + psycopg3."""
+    """Normalize provider URLs for SQLAlchemy + psycopg3. Do not change host or credentials."""
     url = (raw or "").strip()
     if not url:
-        raise ValueError("DATABASE_URL is empty")
+        raise ValueError("DATABASE_URL is not configured")
     if url.lower().startswith("sqlite"):
         raise ValueError("SQLite is not supported; set DATABASE_URL to PostgreSQL")
     if url.startswith("postgres://"):
@@ -19,10 +21,30 @@ def sqlalchemy_database_url(raw: str) -> str:
     return _ensure_sslmode(url)
 
 
+def database_hostname(raw: str) -> str:
+    url = (raw or "").strip()
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://") :]
+    return (urlsplit(url).hostname or "").lower()
+
+
+def is_unconfigured_database_url(raw: str | None) -> bool:
+    """True when the value is missing, an unresolved Railway template, or a local fallback."""
+    text = (raw or "").strip()
+    if not text:
+        return True
+    if "${{" in text or text.startswith("${"):
+        return True
+    host = database_hostname(text)
+    if not host or host in _LOCAL_HOSTS:
+        return True
+    return False
+
+
 def _ensure_sslmode(url: str) -> str:
     parts = urlsplit(url)
     host = (parts.hostname or "").lower()
-    local = host in {"localhost", "127.0.0.1", "::1"} or host.endswith(".local")
+    local = host in _LOCAL_HOSTS or host.endswith(".local")
     railway_private = host.endswith(".railway.internal")
     query = dict(parse_qsl(parts.query, keep_blank_values=True))
     if not local and not railway_private and "sslmode" not in {key.lower() for key in query}:

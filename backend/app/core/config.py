@@ -1,16 +1,27 @@
 from functools import lru_cache
 from pathlib import Path
+import os
 
 from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.core.database_url import is_unconfigured_database_url
+
 _BACKEND_DIR = Path(__file__).resolve().parents[2]
 _REPO_ROOT = Path(__file__).resolve().parents[3]
-_ENV_FILES = tuple(
-    str(path)
-    for path in (_REPO_ROOT / ".env", _BACKEND_DIR / ".env")
-    if path.is_file()
-)
+
+
+def _settings_env_files() -> tuple[str, ...]:
+    # Railway injects real env vars. Never load a packaged .env that points at localhost.
+    if os.environ.get("RAILWAY_ENVIRONMENT") or os.environ.get("RAILWAY_PROJECT_ID"):
+        return ()
+    return tuple(
+        str(path)
+        for path in (_REPO_ROOT / ".env", _BACKEND_DIR / ".env")
+        if path.is_file()
+    )
+
+
 _DEV_JWT_SECRET = "change-me-to-a-long-random-secret"
 _DEV_DATABASE_URL = "postgresql+psycopg://caltrack:caltrack@localhost:5432/caltrack"
 _LOCAL_DEV_ORIGINS = {
@@ -21,7 +32,7 @@ _LOCAL_DEV_ORIGINS = {
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=_ENV_FILES or None,
+        env_file=_settings_env_files() or None,
         env_file_encoding="utf-8",
         extra="ignore",
         env_ignore_empty=True,
@@ -31,9 +42,14 @@ class Settings(BaseSettings):
     environment: str = Field(default="development", validation_alias=AliasChoices("ENVIRONMENT", "environment"))
     log_level: str = Field(default="INFO", validation_alias=AliasChoices("LOG_LEVEL", "log_level"))
     database_url: str = Field(
-        default=_DEV_DATABASE_URL,
+        default="",
         validation_alias=AliasChoices("DATABASE_URL", "SUPABASE_DATABASE_URL", "POSTGRES_URL", "database_url"),
     )
+    railway_environment: str = Field(
+        default="",
+        validation_alias=AliasChoices("RAILWAY_ENVIRONMENT", "RAILWAY_ENVIRONMENT_NAME"),
+    )
+    railway_project_id: str = Field(default="", validation_alias=AliasChoices("RAILWAY_PROJECT_ID"))
     db_pool_size: int = 5
     db_max_overflow: int = 10
     db_pool_timeout: int = 30
@@ -116,8 +132,27 @@ class Settings(BaseSettings):
         return origins
 
     @property
+    def on_railway(self) -> bool:
+        return bool(getattr(self, "railway_environment", "") or getattr(self, "railway_project_id", ""))
+
+    @property
     def is_production(self) -> bool:
-        return self.environment.lower() == "production"
+        if str(getattr(self, "environment", "") or "").lower() == "production":
+            return True
+        return str(getattr(self, "railway_environment", "") or "").lower() == "production"
+
+    @property
+    def requires_remote_database(self) -> bool:
+        return self.is_production or self.on_railway
+
+    @property
+    def resolved_database_url(self) -> str:
+        raw = str(getattr(self, "database_url", "") or "").strip()
+        if self.requires_remote_database:
+            if is_unconfigured_database_url(raw):
+                raise RuntimeError("DATABASE_URL is not configured")
+            return raw
+        return raw or _DEV_DATABASE_URL
 
     @property
     def is_test(self) -> bool:
@@ -143,6 +178,12 @@ class Settings(BaseSettings):
 
 
 def validate_production_settings(settings: Settings) -> None:
+    if settings.requires_remote_database:
+        raw = str(getattr(settings, "database_url", "") or "").strip()
+        if is_unconfigured_database_url(raw):
+            raise RuntimeError("DATABASE_URL is not configured")
+        if "sqlite" in raw.lower():
+            raise RuntimeError("SQLite is not allowed in production")
     if not settings.is_production:
         return
     secret = settings.jwt_secret_key.strip()
@@ -150,11 +191,6 @@ def validate_production_settings(settings: Settings) -> None:
         raise RuntimeError("JWT_SECRET_KEY must be a unique secret in production")
     if len(secret) < 32:
         raise RuntimeError("JWT_SECRET_KEY must be at least 32 characters in production")
-    database_url = settings.database_url.strip()
-    if not database_url or database_url == _DEV_DATABASE_URL:
-        raise RuntimeError("DATABASE_URL must be set in production")
-    if "sqlite" in database_url.lower():
-        raise RuntimeError("SQLite is not allowed in production; set DATABASE_URL to Supabase PostgreSQL")
     if not settings.uses_gemini:
         raise RuntimeError("AI_PROVIDER must be Gemini")
     if not settings.cors_origin_list:
