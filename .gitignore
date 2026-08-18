@@ -62,3 +62,7 @@ training/reports/*.json
 !training/reports/.gitkeep
 training/reports/*.md
 !training/README.md
+
+# Interview PDF build artifacts
+docs/pdf-build/mermaid.min.js
+docs/pdf-build/*.html
