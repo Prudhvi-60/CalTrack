@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 36 33% 93%;
+    --foreground: 24 10% 10%;
+    --card: 40 43% 97%;
+    --card-foreground: 24 10% 10%;
+    --primary: 350 35% 35%;
+    --primary-foreground: 40 43% 97%;
+    --muted: 36 20% 88%;
+    --muted-foreground: 24 6% 36%;
+    --border: 30 16% 80%;
+    --input: 30 16% 80%;
+    --ring: 350 35% 35%;
+    --destructive: 0 55% 40%;
+    --destructive-foreground: 40 43% 97%;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+    background-image:
+      radial-gradient(ellipse at top, rgba(176, 141, 87, 0.08), transparent 46%),
+      linear-gradient(180deg, #f7f2ea 0%, #f1ebe1 100%);
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-wine ring-offset-2 ring-offset-paper;
+  }
+}
+
+@layer components {
+  .logo-mark {
+    @apply font-display text-2xl font-semibold tracking-[0.18em] text-ink;
+  }
+}

@@ -1,0 +1,18 @@
+# Vitaphiles local overrides (this directory)
+.env
+.env.*
+!.env.example
+frontend/.env
+backend/.env
+
+__pycache__/
+.venv/
+.pytest_cache/
+*.egg-info/
+
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+.DS_Store
+*.log
