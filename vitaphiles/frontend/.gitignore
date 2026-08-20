@@ -1,0 +1,7 @@
+# Vitaphiles frontend
+node_modules/
+dist/
+.vite/
+.env
+.env.*
+!.env.example
