@@ -2,7 +2,9 @@
 
 Version prefix: `/api/v1`.
 
-**Phase 1:** `GET /`, `GET /health`, `GET /health/ready`, `GET /health/db`.
+**Phase 2:** `POST /api/v1/auth/register` `login` `refresh` `logout` `change-password`; `GET/PATCH /api/v1/auth/me`.
+
+**Phase 1:** `GET /health`, `GET /health/ready` (also under `/api/v1`).
 
 Later: `/auth`, `/users`, `/books`, `/movies`, `/reviews`, `/library`, `/lists`, `/follows`, `/activity`, `/notifications`, `/recommendations`, `/search`, `/stats`.
 

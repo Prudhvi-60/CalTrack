@@ -8,7 +8,7 @@ Vitaphiles is a book + movie discovery platform (editorial, not a dashboard). It
 
 ## Features (product)
 
-See [docs/PRODUCT_REQUIREMENTS.md](docs/PRODUCT_REQUIREMENTS.md). Phase 1 is foundation only: app shell, database schema, health API.
+See [docs/PRODUCT_REQUIREMENTS.md](docs/PRODUCT_REQUIREMENTS.md). Phase 2 adds JWT auth (register, login, refresh, logout). Catalog integrations are later.
 
 ## Architecture
 

@@ -57,12 +57,12 @@ State: Auth Context + TanStack Query. No Redux.
 
 ---
 
-## Auth (target; Phase 2 implements fully)
+## Auth (Phase 2)
 
 - Access JWT ~15 minutes, HS256, stored in a JS module (not localStorage).
-- Refresh token hashed in DB, HttpOnly cookie, rotation + reuse detection.
+- Refresh token hashed in DB (SHA-256 + `JWT_REFRESH_SECRET` pepper), HttpOnly cookie `vitaphiles_refresh`, rotation + reuse detection.
 - `get_current_user` on protected routes.
-- Ownership: queries filtered by `user_id`; other users’ private lists → 404.
+- Ownership: queries filtered by `user_id`; other users’ private lists → 404 (Phase 7).
 
 ---
 

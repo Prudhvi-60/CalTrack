@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 14
     cookie_secure: bool = False
     cookie_samesite: str = "lax"
+    rate_limit_enabled: bool = True
+    auth_rate_limit_per_minute: int = 20
     frontend_url: str = "http://localhost:5174"
     cors_origins: str = "http://localhost:5174,http://127.0.0.1:5174"
     tmdb_api_key: str = Field(default="", validation_alias=AliasChoices("TMDB_API_KEY"))
@@ -40,6 +42,15 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment.lower() == "production"
+
+    @property
+    def refresh_cookie_secure(self) -> bool:
+        return self.cookie_secure or self.is_production
+
+    @property
+    def refresh_cookie_samesite(self) -> str:
+        value = self.cookie_samesite.lower()
+        return value if value in {"lax", "strict", "none"} else "lax"
 
     @property
     def cors_origin_list(self) -> list[str]:
