@@ -178,3 +178,19 @@ Do not set `DATABASE_URL`, `JWT_SECRET_KEY`, or `GEMINI_API_KEY` on Vercel.
 - Keep using FastAPI JWT. Do not switch to Supabase Auth unless you explicitly choose to later.
 
 More Railway/Vercel screenshots and checklists: [DEPLOYMENT_VERCEL_RAILWAY.md](DEPLOYMENT_VERCEL_RAILWAY.md).
+
+---
+
+## Render migration preparation
+
+The project also includes a Render migration-preparation bundle to move the backend from Railway without changing the existing Neon/PostgreSQL provider or the Vercel frontend host.
+
+Files:
+
+- [RAILWAY_TO_RENDER_MIGRATION_AUDIT.md](RAILWAY_TO_RENDER_MIGRATION_AUDIT.md)
+- [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)
+- [RENDER_ENVIRONMENT_VARIABLES.md](RENDER_ENVIRONMENT_VARIABLES.md)
+- [RAILWAY_TO_RENDER_CUTOVER_CHECKLIST.md](RAILWAY_TO_RENDER_CUTOVER_CHECKLIST.md)
+- [../render.yaml](../render.yaml)
+
+These are pre-deployment configuration documents only. They describe the correct Render web service setup, health checks, environment variables, staging validation, and rollback path. They do not deploy the application or change live infrastructure.

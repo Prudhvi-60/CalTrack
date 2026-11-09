@@ -10,6 +10,13 @@ const baseURL = resolveApiUrl();
 if (import.meta.env.PROD && !baseURL) {
   console.error("VITE_API_URL is not set. The production frontend cannot reach FastAPI.");
 }
+
+function requireProductionApiUrl(): void {
+  if (import.meta.env.PROD && !baseURL) {
+    throw new Error("VITE_API_URL is not set. Configure it to the deployed FastAPI origin in Vercel.");
+  }
+}
+
 const timeout = Number(import.meta.env.VITE_API_TIMEOUT_MS ?? 30000);
 
 type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean };
@@ -27,6 +34,11 @@ const refreshClient = axios.create({
   baseURL,
   timeout: 15000,
   withCredentials: true,
+});
+
+refreshClient.interceptors.request.use((config) => {
+  requireProductionApiUrl();
+  return config;
 });
 
 let refreshInFlight: Promise<string | null> | null = null;
@@ -65,6 +77,7 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 apiClient.interceptors.request.use((config) => {
+  requireProductionApiUrl();
   const token = getAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

@@ -8,7 +8,7 @@ client = TestClient(app)
 def test_health() -> None:
     response = client.get("/api/v1/health")
     assert response.status_code == 200
-    assert response.json()["status"] == "ok"
+    assert response.json()["status"] == "healthy"
 
 
 def test_health_ai_does_not_include_a_secret() -> None:
@@ -37,7 +37,7 @@ def test_health_ready_checks_database() -> None:
 def test_health_root() -> None:
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json() == {"status": "healthy"}
     assert "X-Request-ID" in response.headers
     assert response.headers["X-Content-Type-Options"] == "nosniff"
 

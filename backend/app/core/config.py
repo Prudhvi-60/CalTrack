@@ -76,6 +76,26 @@ class Settings(BaseSettings):
     ai_timeout_seconds: float = 45
     ai_max_upload_bytes: int = 5 * 1024 * 1024
     ai_min_confidence: float = 0.5
+    huggingface_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("HF_TOKEN", "HUGGINGFACE_API_KEY", "huggingface_api_key"),
+    )
+    huggingface_model: str = Field(
+        default="google/gemma-2-2b-it",
+        validation_alias=AliasChoices("HF_MODEL", "HUGGINGFACE_MODEL", "huggingface_model"),
+    )
+    enable_huggingface: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("ENABLE_HUGGINGFACE", "enable_huggingface"),
+    )
+    smolagents_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("SMOLAGENTS_ENABLED", "smolagents_enabled"),
+    )
+    gradio_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("GRADIO_ENABLED", "gradio_enabled"),
+    )
     frontend_url: str = Field(
         default="http://localhost:5173",
         validation_alias=AliasChoices("FRONTEND_URL", "frontend_url"),
@@ -98,6 +118,10 @@ class Settings(BaseSettings):
     @property
     def ai_configured(self) -> bool:
         return bool(self.ai_api_key)
+
+    @property
+    def huggingface_configured(self) -> bool:
+        return bool(self.huggingface_model) and (bool(self.huggingface_api_key) or self.enable_huggingface)
 
     @property
     def ai_provider_name(self) -> str:

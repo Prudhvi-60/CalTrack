@@ -47,10 +47,16 @@ if settings.jwt_secret_key == "change-me-to-a-long-random-secret":
 logger.info("AI provider: %s", settings.ai_provider_name)
 logger.info("AI model: %s", settings.ai_model or "missing")
 logger.info("AI API key: %s", "configured" if settings.ai_configured else "not configured")
+logger.info("Hugging Face enabled: %s", "yes" if settings.enable_huggingface else "no")
+logger.info("Hugging Face model: %s", settings.huggingface_model or "missing")
+logger.info("SmolAgents enabled: %s", "yes" if settings.smolagents_enabled else "no")
+logger.info("Gradio enabled: %s", "yes" if settings.gradio_enabled else "no")
 logger.info("Database URL: %s", "configured" if bool(settings.database_url.strip()) else "missing")
 logger.info("Database: %s", _database_label(settings.resolved_database_url))
 if not settings.ai_configured:
     logger.warning("GEMINI_API_KEY is missing. Food analysis and chat will return AI_NOT_CONFIGURED until it is set.")
+if settings.enable_huggingface and not settings.huggingface_configured:
+    logger.warning("HUGGINGFACE_MODEL is configured but no Hugging Face token is set. The provider will still be exposed for local experimentation.")
 
 
 @asynccontextmanager

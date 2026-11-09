@@ -84,6 +84,14 @@ def test_gemini_api_key_env_alias(monkeypatch) -> None:
     assert settings.ai_api_key == "gemini-test-key"
 
 
+def test_optional_ai_features_are_disabled_by_default() -> None:
+    settings = Settings(_env_file=None)
+    assert settings.enable_huggingface is False
+    assert settings.smolagents_enabled is False
+    assert settings.gradio_enabled is False
+    assert settings.huggingface_configured is False
+
+
 def test_development_always_includes_local_vite_origins() -> None:
     settings = Settings(
         frontend_url="http://localhost:5173",

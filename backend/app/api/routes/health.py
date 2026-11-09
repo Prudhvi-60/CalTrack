@@ -14,7 +14,7 @@ router = APIRouter(tags=["health"])
     description="Process liveness. Use /health/ready to verify PostgreSQL.",
 )
 def health() -> dict[str, str]:
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 
 @router.get(

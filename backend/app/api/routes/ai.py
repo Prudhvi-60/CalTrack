@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.dependencies import get_current_user
 from app.db.session import get_db
 from app.models import User
@@ -8,6 +9,8 @@ from app.schemas.ai import AiCorrectionCreate, AiCorrectionPublic, FoodAnalysisR
 from app.schemas.common import ErrorResponse
 from app.services.ai.analyze_service import analyze_image
 from app.services.ai.corrections_service import CorrectionService
+from app.services.ai.providers import build_model_registry
+from app.services.ai.smol_agent_service import SmolAgentService
 from app.services.ai.vision_service import VisionService
 
 router = APIRouter(prefix="/ai", tags=["ai"])
@@ -26,6 +29,21 @@ _errors = {
 
 def get_vision_service() -> VisionService:
     return VisionService()
+
+
+@router.get(
+    "/providers",
+    summary="AI provider status",
+    description="Reports the configured runtime providers, including Gemini, Hugging Face, and SmolAgents support.",
+)
+def provider_status() -> dict[str, object]:
+    settings = get_settings()
+    return {
+        "providers": build_model_registry(settings),
+        "smolagents_enabled": settings.smolagents_enabled,
+        "gradio_enabled": settings.gradio_enabled,
+        "agent_runtime": SmolAgentService(settings).available,
+    }
 
 
 @router.post(
