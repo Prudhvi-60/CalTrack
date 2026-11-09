@@ -12,6 +12,9 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 def _settings_env_files() -> tuple[str, ...]:
+    # Tests must not read a developer's .env file, which may contain a production DATABASE_URL.
+    if os.environ.get("CALTRACK_TESTING") == "1":
+        return ()
     # Railway injects real env vars. Never load a packaged .env that points at localhost.
     if os.environ.get("RAILWAY_ENVIRONMENT") or os.environ.get("RAILWAY_PROJECT_ID"):
         return ()

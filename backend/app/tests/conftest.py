@@ -1,9 +1,25 @@
 from collections.abc import Generator
+import os
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import event
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
+
+# Force the test suite to a local database before importing app.db.database, whose
+# module-level engine is created at import time. Never let pytest use backend/.env
+# because it may point at the production Neon database.
+_TEST_DATABASE_URL = os.environ.get(
+    "CALTRACK_TEST_DATABASE_URL",
+    "postgresql+psycopg://caltrack:caltrack@127.0.0.1:5432/caltrack",
+)
+if make_url(_TEST_DATABASE_URL).host not in {"localhost", "127.0.0.1", "::1"}:
+    raise RuntimeError("CALTRACK_TEST_DATABASE_URL must use a loopback PostgreSQL host")
+os.environ["CALTRACK_TESTING"] = "1"
+os.environ["ENVIRONMENT"] = "development"
+os.environ["DATABASE_URL"] = _TEST_DATABASE_URL
+os.environ["GEMINI_API_KEY"] = "test-key"
 
 from app.db.database import engine
 from app.db.session import get_db
