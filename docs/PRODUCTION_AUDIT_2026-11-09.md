@@ -23,6 +23,7 @@
 - Backend dependency audit found vulnerable JWT, multipart, Starlette, PDF, image, and other pinned versions. The backend now uses PyJWT with an explicit algorithm allow-list and updated FastAPI, Starlette, multipart, PDF, Pillow, dotenv, pytest, and related dependencies. SmolAgents was moved to an opt-in requirements file because Render disables it. Gradio was removed from Render's production requirements; its current release requires Pillow below the patched Pillow 13 used by production image handling, so the standalone demo remains outside the production environment.
 - The development seed no longer contains a default password and refuses non-local databases before touching the session. The README no longer publishes the 404 Railway URLs or the old seeded password.
 - Removed unused Python imports surfaced by Ruff.
+- Added a repository Ruff config selecting correctness-focused rules and accounting for SQLAlchemy's string-based relationship annotations.
 - The root `.env` file is ignored by Git and is not tracked. Its contents were not included in this report. Deployment secrets remain environment-only.
 
 ## Verification
@@ -32,7 +33,7 @@
 | Backend tests | PASS | `pytest -q`: 164 passed against the explicit local PostgreSQL URL after the dependency and SQLAlchemy metadata updates. The suite's DB fixture wraps test operations in rollback transactions. One Starlette deprecation warning recommends `httpx2` for `TestClient`; it did not affect the tests. |
 | Backend startup/API smoke | PASS | FastAPI TestClient: `/health` 200, `/docs` 200, unauthenticated `/api/v1/meals` 401. No real Gemini request was made. |
 | Python compile | PASS | `python -m compileall -q app`. |
-| Python lint | PASS | `ruff check app --select E4,E7,E9,F --ignore F821`; `F821` is excluded because SQLAlchemy forward-reference annotations are string literals. |
+| Python lint | PASS | `ruff check .` using the new `backend/ruff.toml` configuration. |
 | Local migration state | PASS | Local database is at `0004_ai_feedback`; `alembic check` reports no new upgrade operations. This does not establish the production database's revision. |
 | Frontend tests | PASS | Vitest: 14 tests across 11 files. |
 | Frontend lint | PASS | `npm run lint`. |
