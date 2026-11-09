@@ -20,13 +20,7 @@ CalTrack is an AI-powered calorie and nutrition tracking application. Users regi
 
 A copy of the walkthrough is also in the repository: [docs/demo/Demo_Video.mp4](docs/demo/Demo_Video.mp4)
 
-**Live application:** [https://frontend-production-15c16.up.railway.app](https://frontend-production-15c16.up.railway.app)
-
-**Sign in:** [https://frontend-production-15c16.up.railway.app/login](https://frontend-production-15c16.up.railway.app/login)
-
-**API documentation:** [https://caltrack-production-c5cd.up.railway.app/docs](https://caltrack-production-c5cd.up.railway.app/docs)
-
-**API health:** [https://caltrack-production-c5cd.up.railway.app/health](https://caltrack-production-c5cd.up.railway.app/health)
+**Deployment:** The backend targets Render and the frontend targets Vercel. Public URLs are set in those dashboards and are not embedded in the repository.
 
 **Source:** [https://github.com/Prudhvi-60/CalTrack](https://github.com/Prudhvi-60/CalTrack)
 
@@ -172,7 +166,7 @@ npm run dev
 | API docs | [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs) |
 | Health | [http://127.0.0.1:8001/health](http://127.0.0.1:8001/health) |
 
-Local seed user (after `python -m scripts.seed` — **not** for the public Railway site): `demo@caltrack.app` / `DemoPass123!`
+Local seed user (after `python -m scripts.seed`): `demo@caltrack.app`. Set a unique `CALTRACK_DEMO_PASSWORD` of at least 12 characters before running the seed command; no default password is provided.
 
 Optional: `docker compose up --build` runs the full stack.
 
@@ -221,7 +215,7 @@ Placeholders and comments: [`.env.example`](.env.example), [`backend/.env.exampl
 
 | Problem | What to try |
 | --- | --- |
-| Live site will not sign in | Register a new account on the Railway website URL above |
+| Frontend cannot sign in | Check Vercel's `VITE_API_URL` and the backend's `FRONTEND_URL` / `CORS_ORIGINS` settings |
 | API docs open, website cannot load data | Website origin must be allowed in `FRONTEND_URL` / `CORS_ORIGINS` |
 | Photo analysis fails | JPEG, PNG, or WebP, under 5 MB; Gemini must be set on the API |
 | Local login works then drops | Keep `VITE_API_URL` empty so the Vite proxy is used |

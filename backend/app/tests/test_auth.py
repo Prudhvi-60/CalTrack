@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
-from jose import jwt
+import jwt
 
 from app.core.config import get_settings
 

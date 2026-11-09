@@ -30,7 +30,9 @@ def build_demo():
     try:
         import gradio as gr
     except ImportError as exc:  # pragma: no cover - dependency should be installed in the app env
-        raise RuntimeError("Gradio is not installed. Add gradio to backend requirements.") from exc
+        raise RuntimeError(
+            "Gradio is not part of the production backend dependencies. Install a compatible Gradio release in a separate demo environment."
+        ) from exc
 
     return gr.Interface(
         fn=_demo_analyze,

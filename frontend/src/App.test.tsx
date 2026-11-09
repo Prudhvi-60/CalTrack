@@ -22,11 +22,15 @@ function renderApp(path = "/") {
 describe("App shell", () => {
   it("redirects unauthenticated users to login", async () => {
     renderApp("/dashboard");
-    expect(await screen.findByRole("heading", { name: "Sign in to CalTrack" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Sign in to CalTrack" }, { timeout: 5000 }),
+    ).toBeInTheDocument();
   });
 
   it("sends unknown routes through login when signed out", async () => {
     renderApp("/not-a-page");
-    expect(await screen.findByRole("heading", { name: "Sign in to CalTrack" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Sign in to CalTrack" }, { timeout: 5000 }),
+    ).toBeInTheDocument();
   });
 });

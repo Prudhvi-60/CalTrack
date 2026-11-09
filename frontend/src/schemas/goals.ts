@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const nonNegative = z.coerce
-  .number({ invalid_type_error: "Enter a number" })
+  .number({ error: "Enter a number" })
   .refine((value) => Number.isFinite(value), "Enter a number")
   .refine((value) => value >= 0, "Must be 0 or greater");
 

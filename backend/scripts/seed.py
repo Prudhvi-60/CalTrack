@@ -2,19 +2,28 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 from sqlalchemy import select
 
+from app.core.config import get_settings
+from app.core.database_url import database_hostname
 from app.core.security import hash_password
 from app.db.session import SessionLocal
 from app.models import FoodEntry, Goal, Meal, Micronutrient, User
 from app.models.enums import MealType, NutrientName
 
 DEMO_EMAIL = "demo@caltrack.app"
-DEMO_PASSWORD = "DemoPass123!"
 DEMO_NAME = "Demo User"
+
+
+def _demo_password() -> str:
+    password = os.environ.get("CALTRACK_DEMO_PASSWORD", "")
+    if len(password) < 12:
+        raise SystemExit("Set CALTRACK_DEMO_PASSWORD to a unique password of at least 12 characters before seeding.")
+    return password
 
 
 def _food(
@@ -163,6 +172,14 @@ MEAL_BUILDERS = {
 
 
 def seed() -> None:
+    settings = get_settings()
+    if settings.is_production or database_hostname(settings.resolved_database_url) not in {
+        "localhost",
+        "127.0.0.1",
+        "::1",
+    }:
+        raise SystemExit("The development seed can only run against a local, non-production database.")
+    demo_password = _demo_password()
     db = SessionLocal()
     try:
         existing = db.scalar(select(User).where(User.email == DEMO_EMAIL))
@@ -172,7 +189,7 @@ def seed() -> None:
 
         user = User(
             email=DEMO_EMAIL,
-            password_hash=hash_password(DEMO_PASSWORD),
+            password_hash=hash_password(demo_password),
             name=DEMO_NAME,
         )
         user.goals.append(

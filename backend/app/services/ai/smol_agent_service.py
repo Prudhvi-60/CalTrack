@@ -65,7 +65,7 @@ class SmolAgentService:
         except Exception as exc:
             raise AppError(
                 "AI_PROVIDER_ERROR",
-                "smolagents is not installed. Add smolagents to backend requirements before enabling the agent runtime.",
+                "smolagents is not installed. Install backend/requirements-experimental.txt before enabling the agent runtime.",
                 503,
             ) from exc
 

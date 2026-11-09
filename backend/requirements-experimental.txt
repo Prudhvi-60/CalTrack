@@ -1,0 +1,2 @@
+# Optional agent runtime; install separately from the production Render stack.
+smolagents==1.26.0

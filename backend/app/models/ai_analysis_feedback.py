@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from sqlalchemy import Boolean, ForeignKey, Numeric, String
+from sqlalchemy import Boolean, ForeignKey, Index, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -11,6 +11,7 @@ from app.models.mixins import TimestampMixin
 
 class AiAnalysisFeedback(TimestampMixin, Base):
     __tablename__ = "ai_analysis_feedback"
+    __table_args__ = (Index("ix_ai_analysis_feedback_training", "include_in_training"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
@@ -28,7 +29,7 @@ class AiAnalysisFeedback(TimestampMixin, Base):
     corrected_unit: Mapped[str] = mapped_column(String(40), nullable=False)
     predicted_confidence: Mapped[Decimal | None] = mapped_column(Numeric(4, 3), nullable=True)
     confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    include_in_training: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, index=True)
+    include_in_training: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     user: Mapped["User"] = relationship("User", back_populates="ai_analysis_feedback")
     analysis: Mapped["AiAnalysis | None"] = relationship("AiAnalysis", back_populates="feedback")

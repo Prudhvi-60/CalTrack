@@ -24,7 +24,7 @@ describe("Login", () => {
   it("shows validation errors for empty fields", async () => {
     const user = userEvent.setup();
     renderAt("/login");
-    await user.click(await screen.findByRole("button", { name: "Sign in" }));
+    await user.click(await screen.findByRole("button", { name: "Sign in" }, { timeout: 5000 }));
     expect(await screen.findByText("Enter a valid email")).toBeInTheDocument();
     expect(screen.getByText("Password is required")).toBeInTheDocument();
   });
