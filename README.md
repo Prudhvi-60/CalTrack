@@ -239,7 +239,7 @@ python -m pip install -r requirements.txt
 
 ### Deploy the backend to Render
 
-Create or update the Render service from the repository's `render.yaml` Blueprint. It sets the service root directory to `backend`, where `requirements.txt` actually lives. The build command is `pip install -r requirements.txt`; the start command is `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. If Render reports that it cannot find `requirements.txt`, its service is not using this Blueprint configuration or its Root Directory is not `backend`; do not add a duplicate requirements file to the repository root.
+Create or update the Render service from the repository's `render.yaml` Blueprint. It sets the service root directory to `backend`, where `requirements.txt` actually lives. The build command is `pip install -r requirements.txt`; the start command is `python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT`. If the deploy log still runs `gunicorn your_application.wsgi`, the service has a stale Dashboard Start Command override: in Render, open **Settings → Build & Deploy → Start Command**, replace it with the command above, and save. If Render reports that it cannot find `requirements.txt`, its Root Directory is not `backend`; do not add a duplicate requirements file to the repository root.
 
 Set these values in the Render dashboard:
 

@@ -36,10 +36,12 @@ Run from the backend directory.
 Use the service’s environment `PORT` variable and start the app with Uvicorn:
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port $PORT
+python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
 This is the correct path when the app is built from the `backend` root directory.
+
+If Render logs show `gunicorn your_application.wsgi`, its Dashboard Start Command overrides the repository Blueprint. In the Render service, open **Settings → Build & Deploy → Start Command**, replace the override with the Uvicorn command above, and save. A FastAPI app does not use Gunicorn's Django WSGI placeholder.
 
 ## 4. Health check
 
